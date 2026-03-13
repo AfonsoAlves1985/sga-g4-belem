@@ -1,4 +1,4 @@
-# SGA G4 Belém - TODO
+# SGA Grupo FRZ - TODO
 
 ## Fase 1: Arquitetura e Base de Dados
 - [x] Implementar schema Drizzle com todas as tabelas
@@ -92,3 +92,5 @@
 - [x] Dashboard Executivo com métricas e gráficos
 - [x] Navegação no DashboardLayout para todos os módulos
 - [x] Corrigir erro 404 na Página 2 (agora é "Início")
+- [x] Tornar quadros da página Início clicáveis com navegação funcional
+- [x] Renomear projeto de SGA G4 Belém para SGA Grupo FRZ
