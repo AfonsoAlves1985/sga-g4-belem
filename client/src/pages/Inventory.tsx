@@ -3,8 +3,10 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Edit2, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,6 +14,17 @@ export default function Inventory() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string | undefined>();
   const [status, setStatus] = useState<string | undefined>();
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "Consumíveis",
+    quantity: 0,
+    minQuantity: 0,
+    unit: "unidade",
+    location: "",
+    status: "ativo" as "ativo" | "inativo" | "descontinuado",
+  });
 
   const { data: items = [], isLoading, refetch } = trpc.inventory.list.useQuery({
     search,
@@ -22,6 +35,21 @@ export default function Inventory() {
   const createMutation = trpc.inventory.create.useMutation({
     onSuccess: () => {
       toast.success("Item criado com sucesso!");
+      setFormData({ name: "", category: "Consumíveis", quantity: 0, minQuantity: 0, unit: "unidade", location: "", status: "ativo" });
+      setIsDialogOpen(false);
+      refetch();
+    },
+    onError: (error) => {
+      toast.error(`Erro: ${error.message}`);
+    },
+  });
+
+  const updateMutation = trpc.inventory.update.useMutation({
+    onSuccess: () => {
+      toast.success("Item actualizado com sucesso!");
+      setEditingItem(null);
+      setFormData({ name: "", category: "Consumíveis", quantity: 0, minQuantity: 0, unit: "unidade", location: "", status: "ativo" });
+      setIsDialogOpen(false);
       refetch();
     },
     onError: (error) => {
@@ -40,14 +68,46 @@ export default function Inventory() {
   });
 
   const handleCreateSample = () => {
-    createMutation.mutate({
-      name: "Papel A4 - Resma",
-      category: "Consumíveis",
-      quantity: 50,
-      minQuantity: 10,
-      unit: "resma",
-      location: "Armazém A",
+    setEditingItem(null);
+    setFormData({ name: "", category: "Consumíveis", quantity: 0, minQuantity: 0, unit: "unidade", location: "", status: "ativo" });
+    setIsDialogOpen(true);
+  };
+
+  const handleEditItem = (item: any) => {
+    setEditingItem(item);
+    setFormData({
+      name: item.name,
+      category: item.category,
+      quantity: item.quantity,
+      minQuantity: item.minQuantity,
+      unit: item.unit,
+      location: item.location,
+      status: item.status,
     });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = () => {
+    if (!formData.name || !formData.location || formData.quantity < 0 || formData.minQuantity < 0) {
+      toast.error("Preencha todos os campos corretamente");
+      return;
+    }
+
+    if (editingItem) {
+      updateMutation.mutate({
+        id: editingItem.id,
+        ...formData,
+      });
+    } else {
+      createMutation.mutate({
+        name: formData.name,
+        category: formData.category,
+        quantity: formData.quantity,
+        minQuantity: formData.minQuantity,
+        unit: formData.unit,
+        location: formData.location,
+      });
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -60,36 +120,36 @@ export default function Inventory() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Inventário</h1>
-          <p className="text-gray-600 mt-1">Gestão centralizada de materiais e equipamentos</p>
+          <h1 className="text-3xl font-bold text-white">Inventário</h1>
+          <p className="text-gray-400 mt-1">Gestão centralizada de materiais e equipamentos</p>
         </div>
-        <Button onClick={handleCreateSample} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={handleCreateSample} className="bg-orange-600 hover:bg-orange-700">
           <Plus className="w-4 h-4 mr-2" />
           Novo Item
         </Button>
       </div>
 
-      <Card>
+      <Card className="bg-slate-800/50 border-orange-700/30">
         <CardHeader>
-          <CardTitle>Filtros</CardTitle>
-          <CardDescription>Pesquise e filtre itens do inventário</CardDescription>
+          <CardTitle className="text-white">Filtros</CardTitle>
+          <CardDescription className="text-gray-400">Pesquise e filtre itens do inventário</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Pesquisa</label>
+              <label className="text-sm font-medium text-gray-300">Pesquisa</label>
               <Input
                 placeholder="Pesquisar por nome..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="mt-1"
+                className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Categoria</label>
+              <label className="text-sm font-medium text-gray-300">Categoria</label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1 bg-slate-700 border-slate-600 text-white">
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -102,9 +162,9 @@ export default function Inventory() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">Status</label>
+              <label className="text-sm font-medium text-gray-300">Status</label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="mt-1">
+                <SelectTrigger className="mt-1 bg-slate-700 border-slate-600 text-white">
                   <SelectValue placeholder="Selecione um status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -118,22 +178,22 @@ export default function Inventory() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-slate-800/50 border-orange-700/30">
         <CardHeader>
-          <CardTitle>Itens do Inventário</CardTitle>
-          <CardDescription>{items.length} itens encontrados</CardDescription>
+          <CardTitle className="text-white">Itens do Inventário</CardTitle>
+          <CardDescription className="text-gray-400">{items.length} itens encontrados</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Carregando...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+              <p className="text-gray-400 mt-2">Carregando...</p>
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-8">
-              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600">Nenhum item encontrado</p>
-              <Button onClick={handleCreateSample} variant="outline" className="mt-4">
+              <AlertCircle className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-400">Nenhum item encontrado</p>
+              <Button onClick={handleCreateSample} variant="outline" className="mt-4 border-orange-600 text-orange-500 hover:bg-orange-600/10">
                 Criar primeiro item
               </Button>
             </div>
@@ -141,47 +201,50 @@ export default function Inventory() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Quantidade</TableHead>
-                    <TableHead>Mínimo</TableHead>
-                    <TableHead>Localização</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
+                  <TableRow className="border-orange-700/30 hover:bg-slate-700/50">
+                    <TableHead className="text-gray-300">Nome</TableHead>
+                    <TableHead className="text-gray-300">Categoria</TableHead>
+                    <TableHead className="text-gray-300">Quantidade</TableHead>
+                    <TableHead className="text-gray-300">Mínimo</TableHead>
+                    <TableHead className="text-gray-300">Localização</TableHead>
+                    <TableHead className="text-gray-300">Status</TableHead>
+                    <TableHead className="text-gray-300">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {items.map((item: any) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell>{item.category}</TableCell>
-                      <TableCell>
-                        <span className={item.quantity < item.minQuantity ? "text-red-600 font-semibold" : ""}>
-                          {item.quantity} {item.unit}
-                        </span>
+                    <TableRow key={item.id} className="border-orange-700/20 hover:bg-slate-700/30">
+                      <TableCell className="font-medium text-white">{item.name}</TableCell>
+                      <TableCell className="text-gray-300">{item.category}</TableCell>
+                      <TableCell className={item.quantity < item.minQuantity ? "text-red-400 font-semibold" : "text-gray-300"}>
+                        {item.quantity} {item.unit}
                       </TableCell>
-                      <TableCell>{item.minQuantity}</TableCell>
-                      <TableCell>{item.location}</TableCell>
+                      <TableCell className="text-gray-300">{item.minQuantity}</TableCell>
+                      <TableCell className="text-gray-300">{item.location}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${
-                          item.status === "ativo" ? "bg-green-100 text-green-800" :
-                          item.status === "inativo" ? "bg-yellow-100 text-yellow-800" :
-                          "bg-red-100 text-red-800"
+                          item.status === "ativo" ? "bg-green-900/30 text-green-400 border border-green-700/30" :
+                          item.status === "inativo" ? "bg-yellow-900/30 text-yellow-400 border border-yellow-700/30" :
+                          "bg-red-900/30 text-red-400 border border-red-700/30"
                         }`}>
                           {item.status}
                         </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="border-orange-600 text-orange-500 hover:bg-orange-600/10"
+                            onClick={() => handleEditItem(item)}
+                          >
                             <Edit2 className="w-4 h-4" />
                           </Button>
                           <Button 
-                            variant="ghost" 
-                            size="sm" 
+                            variant="outline" 
+                            size="sm"
+                            className="border-red-600 text-red-500 hover:bg-red-600/10"
                             onClick={() => handleDelete(item.id)}
-                            className="text-red-600 hover:text-red-700"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -195,6 +258,127 @@ export default function Inventory() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="bg-slate-800 border-orange-700/30">
+          <DialogHeader>
+            <DialogTitle className="text-white">{editingItem ? "Editar Item" : "Novo Item"}</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {editingItem ? "Actualizar informações do item" : "Criar um novo item no inventário"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name" className="text-gray-300">Nome do Item</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Ex: Papel A4"
+                className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category" className="text-gray-300">Categoria</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <SelectTrigger className="mt-1 bg-slate-700 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Consumíveis">Consumíveis</SelectItem>
+                    <SelectItem value="Equipamentos">Equipamentos</SelectItem>
+                    <SelectItem value="Ferramentas">Ferramentas</SelectItem>
+                    <SelectItem value="Limpeza">Limpeza</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="unit" className="text-gray-300">Unidade</Label>
+                <Input
+                  id="unit"
+                  value={formData.unit}
+                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                  placeholder="Ex: unidade"
+                  className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="quantity" className="text-gray-300">Quantidade</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="minQuantity" className="text-gray-300">Quantidade Mínima</Label>
+                <Input
+                  id="minQuantity"
+                  type="number"
+                  value={formData.minQuantity}
+                  onChange={(e) => setFormData({ ...formData, minQuantity: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="location" className="text-gray-300">Localização</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="Ex: Armazém A"
+                className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
+              />
+            </div>
+
+            {editingItem && (
+              <div>
+                <Label htmlFor="status" className="text-gray-300">Status</Label>
+                <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                  <SelectTrigger className="mt-1 bg-slate-700 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ativo">Ativo</SelectItem>
+                    <SelectItem value="inativo">Inativo</SelectItem>
+                    <SelectItem value="descontinuado">Descontinuado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleSubmit}
+                className="bg-orange-600 hover:bg-orange-700 text-white flex-1"
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
+                {createMutation.isPending || updateMutation.isPending ? "Guardando..." : editingItem ? "Actualizar" : "Criar"}
+              </Button>
+              <Button
+                onClick={() => setIsDialogOpen(false)}
+                variant="outline"
+                className="border-slate-600 text-gray-300 hover:bg-slate-700"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
