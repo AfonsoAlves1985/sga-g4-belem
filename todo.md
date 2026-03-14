@@ -80,6 +80,13 @@
 - [ ] Testar responsividade em mobile
 - [ ] Testar performance do dashboard
 
+## Fase 4: Melhorias Adicionais
+- [ ] Adicionar histórico de movimentações de inventário com rastreamento de utilizador
+- [ ] Implementar sistema de notificações em tempo real (stock baixo, chamados urgentes)
+- [ ] Adicionar exportação de relatórios em PDF/Excel
+- [ ] Implementar filtros avançados em todas as páginas
+- [ ] Adicionar gráficos de tendências e análises
+
 ## Bugs Conhecidos
 (Nenhum registado até ao momento)
 
@@ -94,3 +101,5 @@
 - [x] Corrigir erro 404 na Página 2 (agora é "Início")
 - [x] Tornar quadros da página Início clicáveis com navegação funcional
 - [x] Renomear projeto de SGA G4 Belém para SGA Grupo FRZ
+- [x] Implementar tema dark com paleta de laranja vibrante
+- [x] Adicionar logo FRZ nas telas de login e principal
