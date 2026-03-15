@@ -112,3 +112,9 @@
 ## Fase 5: Melhorias de Autenticação
 - [x] Remover tela 404 antes do login
 - [x] Redirecionar utilizadores não autenticados para página de login
+
+## Fase 6: Edição Inline
+- [x] Implementar edição inline para Tipo em Manutenção
+- [x] Implementar edição inline para Prioridade em Manutenção
+- [x] Implementar edição inline para Status em Manutenção
+- [x] Implementar edição inline para Data em Manutenção

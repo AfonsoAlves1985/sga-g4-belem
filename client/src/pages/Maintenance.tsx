@@ -15,6 +15,9 @@ export default function Maintenance() {
   const [priority, setPriority] = useState<string | undefined>();
   const [editingRequest, setEditingRequest] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [inlineEditingId, setInlineEditingId] = useState<number | null>(null);
+  const [inlineEditField, setInlineEditField] = useState<string | null>(null);
+  const [inlineEditValue, setInlineEditValue] = useState<string>("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -46,6 +49,8 @@ export default function Maintenance() {
       setEditingRequest(null);
       setFormData({ title: "", description: "", priority: "media", type: "correctiva", status: "aberto" });
       setIsDialogOpen(false);
+      setInlineEditingId(null);
+      setInlineEditField(null);
       refetch();
     },
     onError: (error) => {
@@ -81,6 +86,22 @@ export default function Maintenance() {
     setIsDialogOpen(true);
   };
 
+  const handleInlineEdit = (request: any, field: string) => {
+    setInlineEditingId(request.id);
+    setInlineEditField(field);
+    setInlineEditValue(request[field]);
+  };
+
+  const handleInlineSubmit = () => {
+    if (inlineEditingId && inlineEditField) {
+      const updateData: any = {
+        id: inlineEditingId,
+      };
+      updateData[inlineEditField] = inlineEditValue;
+      updateMutation.mutate(updateData);
+    }
+  };
+
   const handleSubmit = () => {
     if (!formData.title || !formData.description) {
       toast.error("Preencha todos os campos obrigatórios");
@@ -88,17 +109,19 @@ export default function Maintenance() {
     }
 
     if (editingRequest) {
-      updateMutation.mutate({
+      const updateData: any = {
         id: editingRequest.id,
         ...formData,
-      });
+      };
+      updateMutation.mutate(updateData);
     } else {
-      createMutation.mutate({
+      const createData: any = {
         title: formData.title,
         description: formData.description,
         priority: formData.priority,
         type: formData.type,
-      });
+      };
+      createMutation.mutate(createData);
     }
   };
 
@@ -263,10 +286,10 @@ export default function Maintenance() {
                 <TableHeader>
                   <TableRow className="border-orange-700/30 hover:bg-slate-700/50">
                     <TableHead className="text-gray-300">Título</TableHead>
-                    <TableHead className="text-gray-300">Tipo</TableHead>
-                    <TableHead className="text-gray-300">Prioridade</TableHead>
-                    <TableHead className="text-gray-300">Status</TableHead>
-                    <TableHead className="text-gray-300">Data</TableHead>
+                    <TableHead className="text-gray-300 cursor-pointer hover:text-orange-400">Tipo</TableHead>
+                    <TableHead className="text-gray-300 cursor-pointer hover:text-orange-400">Prioridade</TableHead>
+                    <TableHead className="text-gray-300 cursor-pointer hover:text-orange-400">Status</TableHead>
+                    <TableHead className="text-gray-300 cursor-pointer hover:text-orange-400">Data</TableHead>
                     <TableHead className="text-gray-300">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -275,22 +298,36 @@ export default function Maintenance() {
                     <TableRow key={request.id} className="border-orange-700/20 hover:bg-slate-700/30">
                       <TableCell className="font-medium text-white">{request.title}</TableCell>
                       <TableCell>
-                        <span className="px-2 py-1 bg-orange-900/30 text-orange-400 rounded text-xs font-medium border border-orange-700/30">
+                        <span
+                          className="px-2 py-1 bg-orange-900/30 text-orange-400 rounded text-xs font-medium border border-orange-700/30 cursor-pointer hover:bg-orange-900/50 transition"
+                          onClick={() => handleInlineEdit(request, "type")}
+                        >
                           {request.type}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(request.priority)}`}>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium cursor-pointer hover:opacity-80 transition ${getPriorityColor(request.priority)}`}
+                          onClick={() => handleInlineEdit(request, "priority")}
+                        >
                           {request.priority}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2 text-gray-300">
+                        <div
+                          className="flex items-center gap-2 text-gray-300 cursor-pointer hover:text-orange-400 transition"
+                          onClick={() => handleInlineEdit(request, "status")}
+                        >
                           {getStatusIcon(request.status)}
                           <span className="capitalize">{request.status}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-300">{new Date(request.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell
+                        className="text-gray-300 cursor-pointer hover:text-orange-400 transition"
+                        onClick={() => handleInlineEdit(request, "createdAt")}
+                      >
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
@@ -320,6 +357,7 @@ export default function Maintenance() {
         </CardContent>
       </Card>
 
+      {/* Dialog de Edição Completa */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="bg-slate-800 border-orange-700/30">
           <DialogHeader>
@@ -408,6 +446,85 @@ export default function Maintenance() {
               </Button>
               <Button
                 onClick={() => setIsDialogOpen(false)}
+                variant="outline"
+                className="border-slate-600 text-gray-300 hover:bg-slate-700"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Edição Inline */}
+      <Dialog open={inlineEditingId !== null} onOpenChange={(open) => !open && setInlineEditingId(null)}>
+        <DialogContent className="bg-slate-800 border-orange-700/30 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white">Editar {inlineEditField?.charAt(0).toUpperCase()}{inlineEditField?.slice(1)}</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Selecione o novo valor para este campo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {inlineEditField === "type" && (
+              <Select value={inlineEditValue} onValueChange={setInlineEditValue}>
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="preventiva">Preventiva</SelectItem>
+                  <SelectItem value="correctiva">Correctiva</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
+            {inlineEditField === "priority" && (
+              <Select value={inlineEditValue} onValueChange={setInlineEditValue}>
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="urgente">Urgente</SelectItem>
+                  <SelectItem value="alta">Alta</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="baixa">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
+            {inlineEditField === "status" && (
+              <Select value={inlineEditValue} onValueChange={setInlineEditValue}>
+                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="aberto">Aberto</SelectItem>
+                  <SelectItem value="em_progresso">Em Progresso</SelectItem>
+                  <SelectItem value="concluido">Concluído</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
+            {inlineEditField === "createdAt" && (
+              <Input
+                type="date"
+                value={new Date(inlineEditValue).toISOString().split('T')[0]}
+                onChange={(e) => setInlineEditValue(new Date(e.target.value).toISOString())}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            )}
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleInlineSubmit}
+                className="bg-orange-600 hover:bg-orange-700 text-white flex-1"
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending ? "Guardando..." : "Guardar"}
+              </Button>
+              <Button
+                onClick={() => setInlineEditingId(null)}
                 variant="outline"
                 className="border-slate-600 text-gray-300 hover:bg-slate-700"
               >
