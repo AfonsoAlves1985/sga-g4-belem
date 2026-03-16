@@ -133,3 +133,8 @@
 - [x] Implementar seletor de idioma com bandeiras no canto superior
 - [x] Traduzir conteúdo de página Home para os 4 idiomas
 - [x] Persistir escolha de idioma no localStorage
+
+## Fase 10: Ajustes de UI
+- [x] Corrigir seletor de idioma para mostrar apenas bandeiras
+- [x] Adicionar logo com fundo transparente no header da página Home
+- [x] Tornar seletor de idioma mais discreto e menor
