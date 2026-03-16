@@ -124,3 +124,6 @@
 - [x] Implementar edição inline em Salas
 - [x] Implementar edição inline em Escala
 - [x] Implementar edição inline em Fornecedores
+
+## Fase 8: Melhorias de Usabilidade
+- [x] Adicionar criação de novos tipos de consumíveis inline na categoria do Inventário

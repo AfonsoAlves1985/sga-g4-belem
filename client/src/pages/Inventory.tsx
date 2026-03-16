@@ -19,6 +19,24 @@ export default function Inventory() {
   const [inlineEditingId, setInlineEditingId] = useState<number | null>(null);
   const [inlineEditField, setInlineEditField] = useState<string | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState<string>("");
+  const [customCategories, setCustomCategories] = useState<string[]>(["Consumíveis", "Equipamentos", "Ferramentas", "Limpeza"]);
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  const handleAddCategory = () => {
+    if (newCategoryName.trim() && !customCategories.includes(newCategoryName)) {
+      setCustomCategories([...customCategories, newCategoryName]);
+      setFormData({ ...formData, category: newCategoryName });
+      setNewCategoryName("");
+      setIsAddingCategory(false);
+      toast.success(`Categoria "${newCategoryName}" adicionada com sucesso!`);
+    } else if (customCategories.includes(newCategoryName)) {
+      toast.error("Esta categoria já existe");
+    } else {
+      toast.error("Digite um nome para a categoria");
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: "",
     category: "Consumíveis",
@@ -175,17 +193,26 @@ export default function Inventory() {
 
             <div>
               <label className="text-sm font-medium text-gray-300">Categoria</label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="mt-1 bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Consumíveis">Consumíveis</SelectItem>
-                  <SelectItem value="Equipamentos">Equipamentos</SelectItem>
-                  <SelectItem value="Ferramentas">Ferramentas</SelectItem>
-                  <SelectItem value="Limpeza">Limpeza</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 mt-1">
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white flex-1">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customCategories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={() => setIsAddingCategory(true)}
+                  size="sm"
+                  className="bg-orange-600 hover:bg-orange-700"
+                  title="Adicionar nova categoria"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             <div>
@@ -429,6 +456,42 @@ export default function Inventory() {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog de Nova Categoria */}
+      <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+        <DialogContent className="bg-slate-800 border-orange-700/30 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-white">Adicionar Nova Categoria</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Digite o nome da nova categoria de consumível
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder="Ex: Papel, Tinta, etc."
+              className="bg-slate-700 border-slate-600 text-white"
+              onKeyPress={(e) => e.key === "Enter" && handleAddCategory()}
+            />
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleAddCategory}
+                className="bg-orange-600 hover:bg-orange-700 text-white flex-1"
+              >
+                Adicionar
+              </Button>
+              <Button
+                onClick={() => setIsAddingCategory(false)}
+                variant="outline"
+                className="border-slate-600 text-gray-300 hover:bg-slate-700"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog de Edição Inline */}
       <Dialog open={inlineEditingId !== null} onOpenChange={(open) => !open && setInlineEditingId(null)}>
         <DialogContent className="bg-slate-800 border-orange-700/30 max-w-sm">
@@ -445,10 +508,9 @@ export default function Inventory() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Consumíveis">Consumíveis</SelectItem>
-                  <SelectItem value="Equipamentos">Equipamentos</SelectItem>
-                  <SelectItem value="Ferramentas">Ferramentas</SelectItem>
-                  <SelectItem value="Limpeza">Limpeza</SelectItem>
+                  {customCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
