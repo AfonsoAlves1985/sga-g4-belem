@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -24,24 +23,29 @@ export function LanguageSelector() {
         <Button
           variant="ghost"
           size="sm"
-          className="text-2xl hover:bg-transparent p-1 h-auto w-auto"
+          className="text-2xl hover:bg-transparent p-0 h-auto w-auto hover:scale-110 transition-transform"
           title={currentLanguage?.name}
         >
           {currentLanguage?.flag}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-slate-800 border-orange-700/30 w-auto">
-        {languages.map((lang) => (
-          <DropdownMenuItem
-            key={lang.code}
-            onClick={() => setLanguage(lang.code)}
-            className={`cursor-pointer text-gray-300 hover:text-orange-400 hover:bg-slate-700 justify-center ${
-              language === lang.code ? "bg-orange-600/20 text-orange-400" : ""
-            }`}
-          >
-            <span className="text-2xl">{lang.flag}</span>
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent align="end" className="bg-slate-800 border-orange-700/30 w-auto p-2">
+        <div className="flex gap-2">
+          {languages.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => setLanguage(lang.code)}
+              className={`text-2xl p-1 rounded transition-all ${
+                language === lang.code 
+                  ? "bg-orange-600/30 scale-125" 
+                  : "hover:bg-slate-700 hover:scale-110"
+              }`}
+              title={lang.name}
+            >
+              {lang.flag}
+            </button>
+          ))}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

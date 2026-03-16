@@ -138,3 +138,7 @@
 - [x] Corrigir seletor de idioma para mostrar apenas bandeiras
 - [x] Adicionar logo com fundo transparente no header da página Home
 - [x] Tornar seletor de idioma mais discreto e menor
+
+## Fase 11: Correções Finais
+- [x] Mover logo para o lugar de "Navigation" na sidebar
+- [x] Corrigir seletor de idioma para mostrar apenas bandeiras (sem siglas)

@@ -175,9 +175,12 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
-                  </span>
+                  <img 
+                    src="https://cdn.manus.im/sgag4belem-ztp8t7vp/logo-frz-white.png" 
+                    alt="FRZ Logo" 
+                    className="h-8 bg-transparent" 
+                    style={{ filter: 'drop-shadow(0 0 2px rgba(249, 115, 22, 0.3))' }}
+                  />
                 </div>
               ) : null}
             </div>
