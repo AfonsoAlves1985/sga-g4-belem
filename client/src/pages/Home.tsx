@@ -4,51 +4,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, Package, Calendar, Building2, Wrench, FileText, BarChart3 } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const { t } = useLanguage();
 
   const modules = [
     {
       icon: Package,
-      label: "Inventário",
-      description: "Controlo de entrada/saída e alertas de stock",
+      label: t("home.inventory"),
+      description: t("home.inventory.desc"),
       path: "/inventory",
       color: "bg-orange-900/20 hover:bg-orange-900/30 border-orange-700/30",
     },
     {
       icon: Calendar,
-      label: "Escala",
-      description: "Atribuição automática por sector e turno",
+      label: t("home.schedule"),
+      description: t("home.schedule.desc"),
       path: "/schedule",
       color: "bg-orange-900/20 hover:bg-orange-900/30 border-orange-700/30",
     },
     {
       icon: Building2,
-      label: "Salas",
-      description: "Calendário visual com status em tempo real",
+      label: t("home.rooms"),
+      description: t("home.rooms.desc"),
       path: "/rooms",
       color: "bg-orange-900/20 hover:bg-orange-900/30 border-orange-700/30",
     },
     {
       icon: Wrench,
-      label: "Manutenção",
-      description: "Preventiva e correctiva com priorização",
+      label: t("home.maintenance"),
+      description: t("home.maintenance.desc"),
       path: "/maintenance",
       color: "bg-orange-900/20 hover:bg-orange-900/30 border-orange-700/30",
     },
     {
       icon: FileText,
-      label: "Fornecedores",
-      description: "Alertas de vencimento e histórico",
+      label: t("home.suppliers"),
+      description: t("home.suppliers.desc"),
       path: "/suppliers",
       color: "bg-orange-900/20 hover:bg-orange-900/30 border-orange-700/30",
     },
     {
       icon: BarChart3,
-      label: "Dashboard",
-      description: "KPIs, gráficos e relatórios executivos",
+      label: t("home.dashboard"),
+      description: t("home.dashboard.desc"),
       path: "/dashboard",
       color: "bg-orange-900/20 hover:bg-orange-900/30 border-orange-700/30",
     },
@@ -56,94 +59,116 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-slate-900">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-orange-500 mx-auto mb-4" />
-          <p className="text-gray-400">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="text-center max-w-md px-4">
-          <img 
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310419663029190932/Ztp8T7Vpr2FQpGULvKFpsw/frz-logo_2746a9e1.png" 
-            alt="FRZ Logo" 
-            className="h-24 mx-auto mb-8 opacity-90"
-          />
-          <h1 className="text-4xl font-bold text-white mb-2">SGA Grupo FRZ</h1>
-          <p className="text-gray-400 mb-8">Sistema de Gestão de Facilities</p>
-          <Button 
-            onClick={() => window.location.href = getLoginUrl()}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300"
-          >
-            Entrar na Plataforma
-          </Button>
+          <Loader2 className="animate-spin h-12 w-12 text-orange-600 mx-auto mb-4" />
+          <p className="text-gray-400">{t("inventory.loading")}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div className="mb-8 flex items-center gap-4">
-        <img 
-          src="https://d2xsxph8kpxj0f.cloudfront.net/310419663029190932/Ztp8T7Vpr2FQpGULvKFpsw/frz-logo_2746a9e1.png" 
-          alt="FRZ Logo" 
-          className="h-12 opacity-90"
-        />
-        <div>
-          <h1 className="text-4xl font-bold text-white">Bem-vindo, {user?.name?.split(' ')[0]}!</h1>
-          <p className="text-gray-400 mt-2">Sistema de Gestão de Facilities - SGA Grupo FRZ</p>
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Header com Logo e Language Selector */}
+      <div className="border-b border-orange-700/20 bg-slate-800/50 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="https://cdn.manus.im/sgag4belem-ztp8t7vp/logo-frz-white.png" alt="FRZ Logo" className="h-10" />
+            <div>
+              <h1 className="text-xl font-bold text-white">{t("home.title")}</h1>
+              <p className="text-sm text-gray-400">{t("home.subtitle")}</p>
+            </div>
+          </div>
+          <LanguageSelector />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {modules.map((module) => {
-          const IconComponent = module.icon;
-          return (
-            <button
-              key={module.path}
-              onClick={() => setLocation(module.path)}
-              className={`${module.color} rounded-lg p-6 text-left transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-orange-700/30 cursor-pointer group`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white group-hover:text-orange-400 transition-colors">
-                    {module.label}
-                  </h3>
-                </div>
-                <IconComponent className="w-8 h-8 text-orange-500 ml-2 flex-shrink-0 group-hover:text-orange-400 transition-colors" />
-              </div>
-              <p className="text-sm text-gray-400">{module.description}</p>
-            </button>
-          );
-        })}
-      </div>
+      {/* Conteúdo Principal */}
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        {isAuthenticated && user ? (
+          <>
+            {/* Saudação */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-white mb-2">
+                {t("app.welcome")}, {user.name}!
+              </h2>
+              <p className="text-gray-400">{t("home.subtitle")}</p>
+            </div>
 
-      <Card className="mt-12 bg-slate-800/50 border-orange-700/30">
-        <CardHeader>
-          <CardTitle className="text-white">Dicas de Utilização</CardTitle>
-          <CardDescription className="text-gray-400">Maximize a eficiência da sua gestão de facilities</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-sm font-bold">1</div>
-            <p className="text-sm text-gray-300">Use o <strong className="text-orange-400">Dashboard</strong> para monitorar KPIs em tempo real e tomar decisões informadas.</p>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-sm font-bold">2</div>
-            <p className="text-sm text-gray-300">Mantenha o <strong className="text-orange-400">Inventário</strong> actualizado para evitar stock crítico e desperdícios.</p>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-sm font-bold">3</div>
-            <p className="text-sm text-gray-300">Priorize <strong className="text-orange-400">Chamados Urgentes</strong> de manutenção para minimizar impactos operacionais.</p>
-          </div>
-        </CardContent>
-      </Card>
+            {/* Grid de Módulos */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {modules.map((module) => {
+                const Icon = module.icon;
+                return (
+                  <Card
+                    key={module.path}
+                    onClick={() => setLocation(module.path)}
+                    className={`cursor-pointer transition-all duration-300 transform hover:scale-105 border-2 ${module.color}`}
+                  >
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <Icon className="h-8 w-8 text-orange-500" />
+                        <CardTitle className="text-white">{module.label}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-gray-400">{module.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* Dicas de Utilização */}
+            <Card className="bg-slate-800/50 border-orange-700/20">
+              <CardHeader>
+                <CardTitle className="text-orange-500">{t("home.tips")}</CardTitle>
+                <CardDescription className="text-gray-400">{t("home.tips.maximize")}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold">
+                      1
+                    </div>
+                    <p className="text-gray-300">{t("home.tips.1")}</p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold">
+                      2
+                    </div>
+                    <p className="text-gray-300">{t("home.tips.2")}</p>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold">
+                      3
+                    </div>
+                    <p className="text-gray-300">{t("home.tips.3")}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <>
+            {/* Tela de Login */}
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+              <div className="text-center mb-8">
+                <img src="https://cdn.manus.im/sgag4belem-ztp8t7vp/logo-frz-white.png" alt="FRZ Logo" className="h-24 mx-auto mb-6" />
+                <h1 className="text-4xl font-bold text-white mb-2">{t("home.title")}</h1>
+                <p className="text-xl text-gray-400">{t("home.subtitle")}</p>
+              </div>
+              <Button
+                onClick={() => (window.location.href = getLoginUrl())}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 text-lg"
+              >
+                {t("app.welcome")}
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

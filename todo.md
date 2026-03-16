@@ -127,3 +127,9 @@
 
 ## Fase 8: Melhorias de Usabilidade
 - [x] Adicionar criação de novos tipos de consumíveis inline na categoria do Inventário
+
+## Fase 9: Sistema de Idiomas
+- [x] Criar contexto de idioma com suporte a PT-PT, PT-BR, EN-US, ES
+- [x] Implementar seletor de idioma com bandeiras no canto superior
+- [x] Traduzir conteúdo de página Home para os 4 idiomas
+- [x] Persistir escolha de idioma no localStorage
