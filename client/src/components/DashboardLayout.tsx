@@ -173,15 +173,6 @@ function DashboardLayoutContent({
               >
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
-              {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <img 
-                    src="https://d2xsxph8kpxj0f.cloudfront.net/310419663029190932/Ztp8T7Vpr2FQpGULvKFpsw/frz-logo-gold-3fS8xoBHwRKChvSMDViXhP.webp" 
-                    alt="FRZ Logo" 
-                    className="h-8 bg-transparent" 
-                  />
-                </div>
-              ) : null}
             </div>
           </SidebarHeader>
 
