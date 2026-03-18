@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -19,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, AlertCircle, CheckCircle, AlertTriangle } from "lucide-react";
+import { Plus, Edit2, Trash2, AlertCircle, CheckCircle, AlertTriangle, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -288,26 +287,47 @@ export default function Consumables() {
       {/* Filters */}
       <Card className="bg-slate-800/50 border-orange-700/20">
         <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <Input
-              placeholder="Pesquisar por produto..."
-              value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="bg-slate-700 border-slate-600 text-white"
-            />
-            <Select value={filters.category || ""} onValueChange={(value) => setFilters({ ...filters, category: value })}>
-              <SelectTrigger className="w-48 bg-slate-700 border-slate-600 text-white">
-                <SelectValue placeholder="Todas as categorias" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                <SelectItem value="">Todas as categorias</SelectItem>
-                {categories.map((cat: any) => (
-                  <SelectItem key={cat} value={String(cat)}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <label className="text-sm font-medium text-gray-300 block mb-2">Pesquisar</label>
+              <Input
+                placeholder="Pesquisar por produto..."
+                value={filters.search}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+            {categories.length > 0 && (
+              <div className="flex gap-2 items-end">
+                <div>
+                  <label className="text-sm font-medium text-gray-300 block mb-2">Categoria</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {categories.map((cat: any) => (
+                      <button
+                        key={cat}
+                        onClick={() => setFilters({ ...filters, category: filters.category === cat ? "" : cat })}
+                        className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                          filters.category === cat
+                            ? "bg-orange-600 text-white"
+                            : "bg-slate-700 text-gray-300 hover:bg-slate-600"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {filters.category && (
+                  <button
+                    onClick={() => setFilters({ ...filters, category: "" })}
+                    className="text-gray-400 hover:text-gray-300 transition-colors"
+                    title="Limpar filtro"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
