@@ -31,6 +31,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: BarChart3, label: "Início", path: "/" },
   { icon: Package, label: "Inventário", path: "/inventory" },
+  { icon: Package, label: "Consumíveis", path: "/consumables" },
   { icon: Calendar, label: "Escala", path: "/schedule" },
   { icon: Building2, label: "Salas", path: "/rooms" },
   { icon: Wrench, label: "Manutenção", path: "/maintenance" },

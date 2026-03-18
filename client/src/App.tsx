@@ -13,6 +13,7 @@ import Rooms from "./pages/Rooms";
 import Maintenance from "./pages/Maintenance";
 import Suppliers from "./pages/Suppliers";
 import Dashboard from "./pages/Dashboard";
+import Consumables from "./pages/Consumables";
 import { useAuth } from "./_core/hooks/useAuth";
 import DashboardLayout from "./components/DashboardLayout";
 import { useEffect } from "react";
@@ -63,6 +64,7 @@ function Router() {
         <Route path={"/rooms"} component={Rooms} />
         <Route path={"/maintenance"} component={Maintenance} />
         <Route path={"/suppliers"} component={Suppliers} />
+        <Route path={"/consumables"} component={Consumables} />
         <Route path={"/dashboard"} component={Dashboard} />
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />

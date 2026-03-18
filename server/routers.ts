@@ -452,6 +452,134 @@ export const appRouter = router({
         return db.deleteContract(input);
       }),
   }),
+
+  // ============ CONSUMÍVEIS ============
+  consumables: router({
+    list: protectedProcedure
+      .input(z.object({
+        category: z.string().optional(),
+        status: z.string().optional(),
+        search: z.string().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return db.listConsumables(input);
+      }),
+
+    getById: protectedProcedure
+      .input(z.number())
+      .query(async ({ input }) => {
+        return db.getConsumableById(input);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        category: z.string(),
+        unit: z.string(),
+        minStock: z.number().default(0),
+        maxStock: z.number().default(0),
+        currentStock: z.number().default(0),
+        replenishStock: z.number().default(0),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createConsumable(input);
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        category: z.string().optional(),
+        unit: z.string().optional(),
+        minStock: z.number().optional(),
+        maxStock: z.number().optional(),
+        currentStock: z.number().optional(),
+        replenishStock: z.number().optional(),
+        status: z.enum(["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateConsumable(id, data);
+      }),
+
+    delete: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input }) => {
+        return db.deleteConsumable(input);
+      }),
+
+    listWeekly: protectedProcedure
+      .input(z.object({
+        consumableId: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return db.listConsumablesWeekly(input);
+      }),
+
+    createWeekly: protectedProcedure
+      .input(z.object({
+        consumableId: z.number(),
+        weekStartDate: z.date(),
+        minStock: z.number(),
+        maxStock: z.number(),
+        currentStock: z.number(),
+        replenishStock: z.number(),
+        status: z.enum(["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).default("ESTOQUE_OK"),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createConsumableWeekly(input);
+      }),
+
+    updateWeekly: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        minStock: z.number().optional(),
+        maxStock: z.number().optional(),
+        currentStock: z.number().optional(),
+        replenishStock: z.number().optional(),
+        status: z.enum(["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateConsumableWeekly(id, data);
+      }),
+
+    listMonthly: protectedProcedure
+      .input(z.object({
+        consumableId: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return db.listConsumablesMonthly(input);
+      }),
+
+    createMonthly: protectedProcedure
+      .input(z.object({
+        consumableId: z.number(),
+        monthStartDate: z.date(),
+        minStock: z.number(),
+        maxStock: z.number(),
+        currentStock: z.number(),
+        replenishStock: z.number(),
+        status: z.enum(["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).default("ESTOQUE_OK"),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createConsumableMonthly(input);
+      }),
+
+    updateMonthly: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        minStock: z.number().optional(),
+        maxStock: z.number().optional(),
+        currentStock: z.number().optional(),
+        replenishStock: z.number().optional(),
+        status: z.enum(["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateConsumableMonthly(id, data);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

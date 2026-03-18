@@ -199,3 +199,65 @@ export const contracts = mysqlTable("contracts", {
 
 export type Contract = typeof contracts.$inferSelect;
 export type InsertContract = typeof contracts.$inferInsert;
+
+// Estoque de Consumíveis - Tabela Base
+export const consumables = mysqlTable("consumables", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  unit: varchar("unit", { length: 50 }).notNull(),
+  minStock: int("minStock").notNull().default(0),
+  maxStock: int("maxStock").notNull().default(0),
+  currentStock: int("currentStock").notNull().default(0),
+  replenishStock: int("replenishStock").notNull().default(0),
+  status: mysqlEnum("status", ["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).default("ESTOQUE_OK").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Consumable = typeof consumables.$inferSelect;
+export type InsertConsumable = typeof consumables.$inferInsert;
+
+// Estoque de Consumíveis - Histórico Semanal
+export const consumablesWeekly = mysqlTable("consumables_weekly", {
+  id: int("id").autoincrement().primaryKey(),
+  consumableId: int("consumableId").notNull(),
+  weekStartDate: datetime("weekStartDate").notNull(),
+  minStock: int("minStock").notNull(),
+  maxStock: int("maxStock").notNull(),
+  currentStock: int("currentStock").notNull(),
+  replenishStock: int("replenishStock").notNull(),
+  status: mysqlEnum("status", ["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).default("ESTOQUE_OK").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  consumableFk: foreignKey({
+    columns: [table.consumableId],
+    foreignColumns: [consumables.id],
+  }),
+}));
+
+export type ConsumableWeekly = typeof consumablesWeekly.$inferSelect;
+export type InsertConsumableWeekly = typeof consumablesWeekly.$inferInsert;
+
+// Estoque de Consumíveis - Histórico Mensal
+export const consumablesMonthly = mysqlTable("consumables_monthly", {
+  id: int("id").autoincrement().primaryKey(),
+  consumableId: int("consumableId").notNull(),
+  monthStartDate: datetime("monthStartDate").notNull(),
+  minStock: int("minStock").notNull(),
+  maxStock: int("maxStock").notNull(),
+  currentStock: int("currentStock").notNull(),
+  replenishStock: int("replenishStock").notNull(),
+  status: mysqlEnum("status", ["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).default("ESTOQUE_OK").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  consumableFk: foreignKey({
+    columns: [table.consumableId],
+    foreignColumns: [consumables.id],
+  }),
+}));
+
+export type ConsumableMonthly = typeof consumablesMonthly.$inferSelect;
+export type InsertConsumableMonthly = typeof consumablesMonthly.$inferInsert;

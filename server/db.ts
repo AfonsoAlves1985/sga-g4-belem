@@ -6,7 +6,8 @@ import {
   teams, schedules, InsertTeam, InsertSchedule,
   rooms, roomReservations, InsertRoom, InsertRoomReservation,
   maintenanceRequests, InsertMaintenanceRequest,
-  suppliers, contracts, InsertSupplier, InsertContract
+  suppliers, contracts, InsertSupplier, InsertContract,
+  consumables, consumablesWeekly, consumablesMonthly, InsertConsumable, InsertConsumableWeekly, InsertConsumableMonthly
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -468,4 +469,111 @@ export async function deleteContract(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.delete(contracts).where(eq(contracts.id, id));
+}
+
+// ============ CONSUMÍVEIS ============
+
+export async function listConsumables(filters?: { category?: string; status?: string; search?: string }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+
+  if (filters?.category) conditions.push(eq(consumables.category, filters.category));
+  if (filters?.status) conditions.push(eq(consumables.status, filters.status as any));
+  if (filters?.search) conditions.push(like(consumables.name, `%${filters.search}%`));
+
+  let query = db.select().from(consumables);
+  if (conditions.length > 0) {
+    // @ts-ignore - Drizzle ORM type inference issue
+    query = query.where(and(...conditions));
+  }
+
+  return (await query.orderBy(desc(consumables.createdAt))) as any;
+}
+
+export async function getConsumableById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(consumables).where(eq(consumables.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createConsumable(data: InsertConsumable) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(consumables).values(data);
+  return result;
+}
+
+export async function updateConsumable(id: number, data: Partial<InsertConsumable>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(consumables).set(data).where(eq(consumables.id, id));
+}
+
+export async function deleteConsumable(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(consumables).where(eq(consumables.id, id));
+}
+
+// Weekly consumables
+export async function listConsumablesWeekly(filters?: { consumableId?: number }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+
+  if (filters?.consumableId) conditions.push(eq(consumablesWeekly.consumableId, filters.consumableId));
+
+  let query = db.select().from(consumablesWeekly);
+  if (conditions.length > 0) {
+    // @ts-ignore - Drizzle ORM type inference issue
+    query = query.where(and(...conditions));
+  }
+
+  return (await query.orderBy(desc(consumablesWeekly.weekStartDate))) as any;
+}
+
+export async function createConsumableWeekly(data: InsertConsumableWeekly) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(consumablesWeekly).values(data);
+}
+
+export async function updateConsumableWeekly(id: number, data: Partial<InsertConsumableWeekly>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(consumablesWeekly).set(data).where(eq(consumablesWeekly.id, id));
+}
+
+// Monthly consumables
+export async function listConsumablesMonthly(filters?: { consumableId?: number }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+
+  if (filters?.consumableId) conditions.push(eq(consumablesMonthly.consumableId, filters.consumableId));
+
+  let query = db.select().from(consumablesMonthly);
+  if (conditions.length > 0) {
+    // @ts-ignore - Drizzle ORM type inference issue
+    query = query.where(and(...conditions));
+  }
+
+  return (await query.orderBy(desc(consumablesMonthly.monthStartDate))) as any;
+}
+
+export async function createConsumableMonthly(data: InsertConsumableMonthly) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(consumablesMonthly).values(data);
+}
+
+export async function updateConsumableMonthly(id: number, data: Partial<InsertConsumableMonthly>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(consumablesMonthly).set(data).where(eq(consumablesMonthly.id, id));
 }

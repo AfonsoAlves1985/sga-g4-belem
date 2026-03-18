@@ -148,3 +148,13 @@
 - [x] Adicionar gráficos de consumo por período
 - [x] Implementar filtros de data e categoria no histórico
 - [x] Criar análise de tendências de consumo
+
+## Fase 13: Estoque de Consumíveis
+- [x] Criar schema Drizzle para tabela de consumíveis
+- [x] Implementar procedures tRPC para CRUD de consumíveis
+- [x] Criar página de Estoque de Consumíveis com tabelas semanais e mensais
+- [x] Implementar cálculo automático de status (ESTOQUE OK, ACIMA DO ESTOQUE, REPOR ESTOQUE)
+- [x] Implementar sincronização entre tabelas semanais e mensais
+- [ ] Adicionar edição inline para campos de consumíveis
+- [x] Adicionar testes Vitest para o módulo de consumíveis
+- [x] Adicionar navegação para Estoque de Consumíveis no DashboardLayout
