@@ -194,3 +194,10 @@
 ## Fase 18: Cálculo Automático de Repor Estoque
 - [x] Implementar cálculo automático de Repor Estoque no formulário
 - [x] Atualizar testes Vitest para validar novo cálculo
+
+
+## Fase 19: Dashboard - Estoque Crítico de Consumíveis
+- [x] Ler página Dashboard e entender estrutura atual
+- [x] Atualizar Dashboard para consultar estoque crítico de Consumíveis por unidade
+- [x] Remover referências ao Inventário no Dashboard
+- [x] Testar e validar exibição de alertas de estoque crítico

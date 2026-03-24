@@ -4,17 +4,18 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { AlertTriangle, CheckCircle, Clock, Package, TrendingUp, Users } from "lucide-react";
 
 export default function Dashboard() {
-  const { data: inventory = [] } = trpc.inventory.list.useQuery();
   const { data: maintenance = [] } = trpc.maintenance.list.useQuery();
   const { data: rooms = [] } = trpc.rooms.list.useQuery();
   const { data: reservations = [] } = trpc.roomReservations.list.useQuery();
   const { data: contracts = [] } = trpc.contracts.list.useQuery();
   const { data: teams = [] } = trpc.teams.list.useQuery();
+  const { data: consumables = [] } = trpc.consumablesWithSpace.list.useQuery();
+  const { data: spaces = [] } = trpc.consumableSpaces.list.useQuery();
 
   // Calcular métricas
+  const criticalConsumables = consumables.filter((c: any) => c.status === "REPOR_ESTOQUE");
   const metrics = {
-    totalInventory: inventory.length,
-    lowStockItems: inventory.filter((i: any) => i.quantity < i.minQuantity).length,
+    lowStockItems: criticalConsumables.length,
     maintenanceOpen: maintenance.filter((m: any) => m.status === "aberto").length,
     maintenanceUrgent: maintenance.filter((m: any) => m.priority === "urgente").length,
     roomsAvailable: rooms.filter((r: any) => r.status === "disponivel").length,
@@ -79,13 +80,13 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Stock Crítico</CardTitle>
+              <CardTitle className="text-sm font-medium">Consumíveis Críticos</CardTitle>
               <Package className="w-4 h-4 text-yellow-600" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-yellow-600">{metrics.lowStockItems}</div>
-            <p className="text-xs text-gray-600 mt-1">de {metrics.totalInventory} itens</p>
+            <p className="text-xs text-gray-600 mt-1">itens para repor</p>
           </CardContent>
         </Card>
 
@@ -115,6 +116,46 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Consumíveis Críticos por Unidade */}
+      {criticalConsumables.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Consumíveis com Estoque Crítico</CardTitle>
+            <CardDescription>Itens que necessitam reposição imediata por unidade</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {criticalConsumables.slice(0, 10).map((item: any) => {
+                const space = spaces.find((s: any) => s.id === item.spaceId);
+                return (
+                  <div key={item.id} className="flex items-center justify-between p-3 border rounded bg-red-50">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{item.name}</p>
+                      <p className="text-sm text-gray-600">
+                        Unidade: {space?.name || "N/A"} | Categoria: {item.category}
+                      </p>
+                      <p className="text-sm text-red-600 mt-1">
+                        Estoque: {item.currentStock} {item.unit} | Mínimo: {item.minStock} | Máximo: {item.maxStock}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-block px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded">
+                        REPOR
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              {criticalConsumables.length > 10 && (
+                <p className="text-sm text-gray-600 text-center pt-2">
+                  +{criticalConsumables.length - 10} itens adicionais com estoque crítico
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -213,9 +254,9 @@ export default function Dashboard() {
             <div className="flex items-center justify-between p-3 border rounded">
               <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-green-600" />
-                <span className="font-medium">Itens em Inventário</span>
+                <span className="font-medium">Unidades de Consumíveis</span>
               </div>
-              <span className="text-2xl font-bold">{metrics.totalInventory}</span>
+              <span className="text-2xl font-bold">{spaces.length}</span>
             </div>
 
             <div className="flex items-center justify-between p-3 border rounded">
