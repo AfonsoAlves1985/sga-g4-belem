@@ -166,3 +166,10 @@
 - [x] Implementar funcionalidade de exclusão de membros
 - [x] Adicionar testes Vitest para CRUD de membros
 - [ ] Integrar com geração automática de escala
+
+
+## Fase 15: Alertas de Stock Crítico para Consumíveis
+- [x] Remover alertas de stock crítico do Inventário
+- [x] Implementar alertas de stock crítico para Consumíveis (abaixo do mínimo)
+- [x] Adicionar widget de alertas na página Home
+- [x] Implementar filtro de alertas críticos na página Consumíveis

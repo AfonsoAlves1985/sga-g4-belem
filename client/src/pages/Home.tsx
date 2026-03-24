@@ -1,11 +1,58 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Package, Calendar, Building2, Wrench, FileText, BarChart3 } from "lucide-react";
+import { Loader2, Package, Calendar, Building2, Wrench, FileText, BarChart3, AlertCircle } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { trpc } from "@/lib/trpc";
+
+function CriticalStockAlertsWidget() {
+  const { t } = useLanguage();
+  const [, setLocation] = useLocation();
+  const { data: consumables = [] } = trpc.consumables.list.useQuery({});
+
+  const criticalItems = consumables.filter((item: any) => item.status === "REPOR_ESTOQUE");
+
+  if (criticalItems.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card className="bg-red-900/30 border-red-700/50 mb-8">
+      <CardHeader>
+        <CardTitle className="text-red-400 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
+          Alertas de Stock Critico
+        </CardTitle>
+        <CardDescription className="text-red-300/70">
+          {criticalItems.length} consumivel(is) necessitam reposicao imediata
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2 mb-4">
+          {criticalItems.slice(0, 3).map((item: any) => (
+            <div key={item.id} className="flex items-center justify-between bg-red-900/20 p-3 rounded border border-red-700/30">
+              <div className="flex-1">
+                <p className="text-white font-medium">{item.name}</p>
+                <p className="text-red-300/70 text-sm">Estoque: {item.currentStock} {item.unit} (Minimo: {item.minStock})</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {criticalItems.length > 0 && (
+          <Button
+            onClick={() => setLocation("/consumables")}
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+          >
+            Ver todos os alertas
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -99,6 +146,9 @@ export default function Home() {
               </h2>
               <p className="text-gray-400">{t("home.subtitle")}</p>
             </div>
+
+            {/* Critical Stock Alerts Widget */}
+            <CriticalStockAlertsWidget />
 
             {/* Grid de Módulos */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">

@@ -284,6 +284,39 @@ export default function Consumables() {
         </Dialog>
       </div>
 
+      {/* Critical Stock Alerts */}
+      {consumables.some((item: any) => item.status === "REPOR_ESTOQUE") && (
+        <Card className="bg-red-900/30 border-red-700/50">
+          <CardHeader>
+            <CardTitle className="text-red-400 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Alertas de Stock Crítico
+            </CardTitle>
+            <CardDescription className="text-red-300/70">Consumíveis que necessitam reposição imediata</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {consumables
+                .filter((item: any) => item.status === "REPOR_ESTOQUE")
+                .map((item: any) => (
+                  <div key={item.id} className="flex items-center justify-between bg-red-900/20 p-3 rounded border border-red-700/30">
+                    <div className="flex-1">
+                      <p className="text-white font-medium">{item.name}</p>
+                      <p className="text-red-300/70 text-sm">Estoque atual: {item.currentStock} {item.unit} (Mínimo: {item.minStock})</p>
+                    </div>
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="ml-4 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
+                    >
+                      Repor
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card className="bg-slate-800/50 border-orange-700/20">
         <CardContent className="pt-6">

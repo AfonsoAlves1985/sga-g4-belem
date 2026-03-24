@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Inventory() {
@@ -245,7 +245,6 @@ export default function Inventory() {
             </div>
           ) : items.length === 0 ? (
             <div className="text-center py-8">
-              <AlertCircle className="w-12 h-12 text-gray-600 mx-auto mb-2" />
               <p className="text-gray-400">Nenhum item encontrado</p>
               <Button onClick={handleCreateSample} variant="outline" className="mt-4 border-orange-600 text-orange-500 hover:bg-orange-600/10">
                 Criar primeiro item
