@@ -261,3 +261,40 @@ export const consumablesMonthly = mysqlTable("consumables_monthly", {
 
 export type ConsumableMonthly = typeof consumablesMonthly.$inferSelect;
 export type InsertConsumableMonthly = typeof consumablesMonthly.$inferInsert;
+
+// Unidades/Spaces para Consumíveis
+export const consumableSpaces = mysqlTable("consumable_spaces", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  location: varchar("location", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ConsumableSpace = typeof consumableSpaces.$inferSelect;
+export type InsertConsumableSpace = typeof consumableSpaces.$inferInsert;
+
+// Atualizar consumables para incluir spaceId
+export const consumablesWithSpace = mysqlTable("consumables_with_space", {
+  id: int("id").autoincrement().primaryKey(),
+  spaceId: int("spaceId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  unit: varchar("unit", { length: 50 }).notNull(),
+  minStock: int("minStock").notNull().default(0),
+  maxStock: int("maxStock").notNull().default(0),
+  currentStock: int("currentStock").notNull().default(0),
+  replenishStock: int("replenishStock").notNull().default(0),
+  status: mysqlEnum("status", ["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).default("ESTOQUE_OK").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  spaceFk: foreignKey({
+    columns: [table.spaceId],
+    foreignColumns: [consumableSpaces.id],
+  }),
+}));
+
+export type ConsumableWithSpace = typeof consumablesWithSpace.$inferSelect;
+export type InsertConsumableWithSpace = typeof consumablesWithSpace.$inferInsert;

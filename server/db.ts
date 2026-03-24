@@ -7,7 +7,8 @@ import {
   rooms, roomReservations, InsertRoom, InsertRoomReservation,
   maintenanceRequests, InsertMaintenanceRequest,
   suppliers, contracts, InsertSupplier, InsertContract,
-  consumables, consumablesWeekly, consumablesMonthly, InsertConsumable, InsertConsumableWeekly, InsertConsumableMonthly
+  consumables, consumablesWeekly, consumablesMonthly, InsertConsumable, InsertConsumableWeekly, InsertConsumableMonthly,
+  consumableSpaces, consumablesWithSpace, InsertConsumableSpace, InsertConsumableWithSpace
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -576,4 +577,68 @@ export async function updateConsumableMonthly(id: number, data: Partial<InsertCo
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.update(consumablesMonthly).set(data).where(eq(consumablesMonthly.id, id));
+}
+
+
+// Consumable Spaces
+export async function listConsumableSpaces() {
+  const db = await getDb();
+  if (!db) return [];
+  return (await db.select().from(consumableSpaces).orderBy(asc(consumableSpaces.name))) as any;
+}
+
+export async function createConsumableSpace(data: InsertConsumableSpace) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(consumableSpaces).values(data);
+  return result;
+}
+
+export async function updateConsumableSpace(id: number, data: Partial<InsertConsumableSpace>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(consumableSpaces).set(data).where(eq(consumableSpaces.id, id));
+}
+
+export async function deleteConsumableSpace(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(consumableSpaces).where(eq(consumableSpaces.id, id));
+}
+
+// Consumables with Space
+export async function listConsumablesWithSpace(filters?: { spaceId?: number; search?: string; category?: string }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [];
+  if (filters?.spaceId) conditions.push(eq(consumablesWithSpace.spaceId, filters.spaceId));
+  if (filters?.search) conditions.push(like(consumablesWithSpace.name, `%${filters.search}%`));
+  if (filters?.category) conditions.push(eq(consumablesWithSpace.category, filters.category));
+
+  let query = db.select().from(consumablesWithSpace);
+  if (conditions.length > 0) {
+    // @ts-ignore - Drizzle ORM type inference issue
+    query = query.where(and(...conditions));
+  }
+
+  return (await query.orderBy(asc(consumablesWithSpace.name))) as any;
+}
+
+export async function createConsumableWithSpace(data: InsertConsumableWithSpace) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(consumablesWithSpace).values(data);
+}
+
+export async function updateConsumableWithSpace(id: number, data: Partial<InsertConsumableWithSpace>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(consumablesWithSpace).set(data).where(eq(consumablesWithSpace.id, id));
+}
+
+export async function deleteConsumableWithSpace(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.delete(consumablesWithSpace).where(eq(consumablesWithSpace.id, id));
 }

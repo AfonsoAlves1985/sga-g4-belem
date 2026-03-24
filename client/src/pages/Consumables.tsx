@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, AlertCircle, CheckCircle, AlertTriangle, X } from "lucide-react";
+import { Plus, Edit2, Trash2, AlertCircle, CheckCircle, AlertTriangle, X, Building2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,8 +26,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function Consumables() {
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSpaceDialogOpen, setIsSpaceDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"weekly" | "monthly">("weekly");
+  const [editingSpaceId, setEditingSpaceId] = useState<number | null>(null);
+  const [selectedSpace, setSelectedSpace] = useState<number | null>(null);
   const [filters, setFilters] = useState({ search: "", category: "" });
   const [formData, setFormData] = useState({
     name: "",
@@ -38,14 +40,21 @@ export default function Consumables() {
     currentStock: 0,
     replenishStock: 0,
   });
+  const [spaceFormData, setSpaceFormData] = useState({
+    name: "",
+    description: "",
+    location: "",
+  });
 
   // Queries
-  const { data: consumables = [], isLoading, refetch } = trpc.consumables.list.useQuery(filters);
-  const { data: weeklyData = [] } = trpc.consumables.listWeekly.useQuery({});
-  const { data: monthlyData = [] } = trpc.consumables.listMonthly.useQuery({});
+  const { data: spaces = [], isLoading: spacesLoading, refetch: refetchSpaces } = trpc.consumableSpaces.list.useQuery();
+  const { data: consumables = [], isLoading, refetch } = trpc.consumablesWithSpace.list.useQuery({
+    spaceId: selectedSpace || undefined,
+    ...filters,
+  });
 
-  // Mutations
-  const createMutation = trpc.consumables.create.useMutation({
+  // Mutations for Consumables
+  const createMutation = trpc.consumablesWithSpace.create.useMutation({
     onSuccess: () => {
       toast.success(t("app.success"));
       refetch();
@@ -55,7 +64,7 @@ export default function Consumables() {
     onError: (error) => toast.error(error.message),
   });
 
-  const updateMutation = trpc.consumables.update.useMutation({
+  const updateMutation = trpc.consumablesWithSpace.update.useMutation({
     onSuccess: () => {
       toast.success(t("app.success"));
       refetch();
@@ -65,10 +74,42 @@ export default function Consumables() {
     onError: (error) => toast.error(error.message),
   });
 
-  const deleteMutation = trpc.consumables.delete.useMutation({
+  const deleteMutation = trpc.consumablesWithSpace.delete.useMutation({
     onSuccess: () => {
       toast.success(t("app.success"));
       refetch();
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  // Mutations for Spaces
+  const createSpaceMutation = trpc.consumableSpaces.create.useMutation({
+    onSuccess: () => {
+      toast.success("Unidade criada com sucesso!");
+      refetchSpaces();
+      setIsSpaceDialogOpen(false);
+      setSpaceFormData({ name: "", description: "", location: "" });
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const updateSpaceMutation = trpc.consumableSpaces.update.useMutation({
+    onSuccess: () => {
+      toast.success("Unidade atualizada com sucesso!");
+      refetchSpaces();
+      setIsSpaceDialogOpen(false);
+      setSpaceFormData({ name: "", description: "", location: "" });
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const deleteSpaceMutation = trpc.consumableSpaces.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Unidade eliminada com sucesso!");
+      refetchSpaces();
+      if (selectedSpace === editingSpaceId) {
+        setSelectedSpace(null);
+      }
     },
     onError: (error) => toast.error(error.message),
   });
@@ -101,12 +142,11 @@ export default function Consumables() {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.category || !formData.unit) {
+    if (!formData.name || !formData.category || !formData.unit || !selectedSpace) {
       toast.error(t("app.required_fields"));
       return;
     }
 
-    // Calculate status based on current stock and min/max
     const calculateStatus = (current: number, min: number, max: number) => {
       if (current > max) return "ACIMA_DO_ESTOQUE";
       if (current < min) return "REPOR_ESTOQUE";
@@ -123,6 +163,7 @@ export default function Consumables() {
       });
     } else {
       await createMutation.mutateAsync({
+        spaceId: selectedSpace,
         ...formData,
       });
     }
@@ -131,6 +172,38 @@ export default function Consumables() {
   const handleDelete = async (id: number) => {
     if (window.confirm(t("app.confirm_delete"))) {
       await deleteMutation.mutateAsync(id);
+    }
+  };
+
+  const handleEditSpace = (space: any) => {
+    setSpaceFormData({
+      name: space.name,
+      description: space.description || "",
+      location: space.location || "",
+    });
+    setEditingSpaceId(space.id);
+    setIsSpaceDialogOpen(true);
+  };
+
+  const handleSubmitSpace = async () => {
+    if (!spaceFormData.name) {
+      toast.error("Nome da unidade é obrigatório");
+      return;
+    }
+
+    if (editingSpaceId) {
+      await updateSpaceMutation.mutateAsync({
+        id: editingSpaceId,
+        ...spaceFormData,
+      });
+    } else {
+      await createSpaceMutation.mutateAsync(spaceFormData);
+    }
+  };
+
+  const handleDeleteSpace = async (id: number) => {
+    if (window.confirm("Tem certeza que deseja eliminar esta unidade?")) {
+      await deleteSpaceMutation.mutateAsync(id);
     }
   };
 
@@ -177,19 +250,23 @@ export default function Consumables() {
     return Array.from(new Set(consumables.map((c: any) => c.category)));
   }, [consumables]);
 
+  const criticalItems = consumables.filter((item: any) => item.status === "REPOR_ESTOQUE");
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Estoque de Consumíveis</h1>
-          <p className="text-gray-400 mt-1">Gestão de consumíveis com histórico semanal e mensal</p>
+          <p className="text-gray-400 mt-1">Gestão de consumíveis por unidade com histórico semanal e mensal</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
               onClick={() => resetForm()}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
+              disabled={!selectedSpace}
+              className="bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
+              title={!selectedSpace ? "Selecione uma unidade primeiro" : ""}
             >
               <Plus className="h-4 w-4 mr-2" />
               Novo Consumível
@@ -197,21 +274,15 @@ export default function Consumables() {
           </DialogTrigger>
           <DialogContent className="bg-slate-800 border-orange-700/30">
             <DialogHeader>
-              <DialogTitle className="text-white">
-                {editingId ? "Editar Consumível" : "Novo Consumível"}
-              </DialogTitle>
-              <DialogDescription className="text-gray-400">
-                Preencha os dados do consumível
-              </DialogDescription>
+              <DialogTitle className="text-white">{editingId ? "Editar" : "Novo"} Consumível</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-300">Produto</label>
+                <label className="text-sm font-medium text-gray-300">Nome</label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="bg-slate-700 border-slate-600 text-white mt-1"
-                  placeholder="Nome do produto"
                 />
               </div>
               <div>
@@ -220,7 +291,6 @@ export default function Consumables() {
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="bg-slate-700 border-slate-600 text-white mt-1"
-                  placeholder="Ex: COPA/COZINHA"
                 />
               </div>
               <div>
@@ -229,12 +299,11 @@ export default function Consumables() {
                   value={formData.unit}
                   onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                   className="bg-slate-700 border-slate-600 text-white mt-1"
-                  placeholder="Ex: UND, L, KG"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-300">Est. Mínimo</label>
+                  <label className="text-sm font-medium text-gray-300">Estoque Mínimo</label>
                   <Input
                     type="number"
                     value={formData.minStock}
@@ -243,7 +312,7 @@ export default function Consumables() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-300">Est. Máximo</label>
+                  <label className="text-sm font-medium text-gray-300">Estoque Máximo</label>
                   <Input
                     type="number"
                     value={formData.maxStock}
@@ -254,7 +323,7 @@ export default function Consumables() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-300">Est. Atual</label>
+                  <label className="text-sm font-medium text-gray-300">Estoque Atual</label>
                   <Input
                     type="number"
                     value={formData.currentStock}
@@ -284,180 +353,268 @@ export default function Consumables() {
         </Dialog>
       </div>
 
-      {/* Critical Stock Alerts */}
-      {consumables.some((item: any) => item.status === "REPOR_ESTOQUE") && (
-        <Card className="bg-red-900/30 border-red-700/50">
-          <CardHeader>
-            <CardTitle className="text-red-400 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              Alertas de Stock Crítico
-            </CardTitle>
-            <CardDescription className="text-red-300/70">Consumíveis que necessitam reposição imediata</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {consumables
-                .filter((item: any) => item.status === "REPOR_ESTOQUE")
-                .map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between bg-red-900/20 p-3 rounded border border-red-700/30">
-                    <div className="flex-1">
-                      <p className="text-white font-medium">{item.name}</p>
-                      <p className="text-red-300/70 text-sm">Estoque atual: {item.currentStock} {item.unit} (Mínimo: {item.minStock})</p>
-                    </div>
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="ml-4 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
-                    >
-                      Repor
-                    </button>
-                  </div>
-                ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Filters */}
+      {/* Spaces Management */}
       <Card className="bg-slate-800/50 border-orange-700/20">
-        <CardContent className="pt-6">
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label className="text-sm font-medium text-gray-300 block mb-2">Pesquisar</label>
-              <Input
-                placeholder="Pesquisar por produto..."
-                value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="bg-slate-700 border-slate-600 text-white"
-              />
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-orange-500" />
+              <CardTitle className="text-white">Unidades</CardTitle>
             </div>
-            {categories.length > 0 && (
-              <div className="flex gap-2 items-end">
-                <div>
-                  <label className="text-sm font-medium text-gray-300 block mb-2">Categoria</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {categories.map((cat: any) => (
-                      <button
-                        key={cat}
-                        onClick={() => setFilters({ ...filters, category: filters.category === cat ? "" : cat })}
-                        className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-                          filters.category === cat
-                            ? "bg-orange-600 text-white"
-                            : "bg-slate-700 text-gray-300 hover:bg-slate-600"
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
+            <Dialog open={isSpaceDialogOpen} onOpenChange={setIsSpaceDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => {
+                    setEditingSpaceId(null);
+                    setSpaceFormData({ name: "", description: "", location: "" });
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Unidade
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-slate-800 border-orange-700/30">
+                <DialogHeader>
+                  <DialogTitle className="text-white">{editingSpaceId ? "Editar" : "Nova"} Unidade</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Nome</label>
+                    <Input
+                      value={spaceFormData.name}
+                      onChange={(e) => setSpaceFormData({ ...spaceFormData, name: e.target.value })}
+                      className="bg-slate-700 border-slate-600 text-white mt-1"
+                    />
                   </div>
-                </div>
-                {filters.category && (
-                  <button
-                    onClick={() => setFilters({ ...filters, category: "" })}
-                    className="text-gray-400 hover:text-gray-300 transition-colors"
-                    title="Limpar filtro"
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Descrição</label>
+                    <Input
+                      value={spaceFormData.description}
+                      onChange={(e) => setSpaceFormData({ ...spaceFormData, description: e.target.value })}
+                      className="bg-slate-700 border-slate-600 text-white mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Localização</label>
+                    <Input
+                      value={spaceFormData.location}
+                      onChange={(e) => setSpaceFormData({ ...spaceFormData, location: e.target.value })}
+                      className="bg-slate-700 border-slate-600 text-white mt-1"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSubmitSpace}
+                    className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                    disabled={createSpaceMutation.isPending || updateSpaceMutation.isPending}
                   >
-                    <X className="h-5 w-5" />
+                    {editingSpaceId ? "Atualizar" : "Criar"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2 flex-wrap">
+            {spacesLoading ? (
+              <p className="text-gray-400">Carregando unidades...</p>
+            ) : spaces.length === 0 ? (
+              <p className="text-gray-400">Nenhuma unidade cadastrada</p>
+            ) : (
+              spaces.map((space: any) => (
+                <div
+                  key={space.id}
+                  className={`flex items-center gap-2 px-3 py-2 rounded border transition-colors ${
+                    selectedSpace === space.id
+                      ? "bg-orange-600 text-white border-orange-600"
+                      : "bg-slate-700 text-gray-300 border-slate-600 hover:bg-slate-600"
+                  }`}
+                >
+                  <button
+                    onClick={() => setSelectedSpace(selectedSpace === space.id ? null : space.id)}
+                    className="flex-1 text-left font-medium"
+                  >
+                    {space.name}
                   </button>
-                )}
-              </div>
+                  <button
+                    onClick={() => handleEditSpace(space)}
+                    className="text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteSpace(space.id)}
+                    className="text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-orange-700/20">
-        <button
-          onClick={() => setActiveTab("weekly")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            activeTab === "weekly"
-              ? "border-orange-600 text-orange-500"
-              : "border-transparent text-gray-400 hover:text-gray-300"
-          }`}
-        >
-          Semanal
-        </button>
-        <button
-          onClick={() => setActiveTab("monthly")}
-          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-            activeTab === "monthly"
-              ? "border-orange-600 text-orange-500"
-              : "border-transparent text-gray-400 hover:text-gray-300"
-          }`}
-        >
-          Mensal
-        </button>
-      </div>
-
-      {/* Table */}
-      <Card className="bg-slate-800/50 border-orange-700/20">
-        <CardHeader>
-          <CardTitle className="text-white">
-            {activeTab === "weekly" ? "Histórico Semanal" : "Histórico Mensal"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8 text-gray-400">Carregando...</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-orange-700/20 hover:bg-transparent">
-                    <TableHead className="text-gray-300">Produto</TableHead>
-                    <TableHead className="text-gray-300">Categoria</TableHead>
-                    <TableHead className="text-gray-300">Und.</TableHead>
-                    <TableHead className="text-gray-300 text-right">Est. Mínimo</TableHead>
-                    <TableHead className="text-gray-300 text-right">Est. Máximo</TableHead>
-                    <TableHead className="text-gray-300 text-right">Est. Atual</TableHead>
-                    <TableHead className="text-gray-300 text-right">Repor</TableHead>
-                    <TableHead className="text-gray-300">Status</TableHead>
-                    <TableHead className="text-gray-300">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {consumables.map((item: any) => (
-                    <TableRow key={item.id} className="border-orange-700/10 hover:bg-slate-700/30">
-                      <TableCell className="text-white font-medium">{item.name}</TableCell>
-                      <TableCell className="text-gray-300">{item.category}</TableCell>
-                      <TableCell className="text-gray-300">{item.unit}</TableCell>
-                      <TableCell className="text-right text-gray-300">{item.minStock}</TableCell>
-                      <TableCell className="text-right text-gray-300 text-green-400">{item.maxStock}</TableCell>
-                      <TableCell className="text-right text-gray-300 font-semibold">{item.currentStock}</TableCell>
-                      <TableCell className="text-right text-gray-300">{item.replenishStock}</TableCell>
-                      <TableCell>
-                        <div className={`inline-flex items-center gap-2 px-2 py-1 rounded ${getStatusColor(item.status)}`}>
-                          {getStatusIcon(item.status)}
-                          <span className="text-sm font-medium">{getStatusLabel(item.status)}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex gap-2 justify-end">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="text-orange-500 hover:text-orange-400 transition-colors"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="text-red-500 hover:text-red-400 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+      {selectedSpace && (
+        <>
+          {/* Critical Stock Alerts */}
+          {criticalItems.length > 0 && (
+            <Card className="bg-red-900/30 border-red-700/50">
+              <CardHeader>
+                <CardTitle className="text-red-400 flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  Alertas de Stock Crítico
+                </CardTitle>
+                <CardDescription className="text-red-300/70">Consumíveis que necessitam reposição imediata</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {criticalItems.map((item: any) => (
+                    <div key={item.id} className="flex items-center justify-between bg-red-900/20 p-3 rounded border border-red-700/30">
+                      <div className="flex-1">
+                        <p className="text-white font-medium">{item.name}</p>
+                        <p className="text-red-300/70 text-sm">Estoque: {item.currentStock} {item.unit} (Mínimo: {item.minStock})</p>
+                      </div>
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="ml-4 px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition-colors"
+                      >
+                        Repor
+                      </button>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
-              {consumables.length === 0 && (
-                <div className="text-center py-8 text-gray-400">Nenhum consumível cadastrado</div>
-              )}
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+
+          {/* Filters */}
+          <Card className="bg-slate-800/50 border-orange-700/20">
+            <CardContent className="pt-6">
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <label className="text-sm font-medium text-gray-300 block mb-2">Pesquisar</label>
+                  <Input
+                    placeholder="Pesquisar por produto..."
+                    value={filters.search}
+                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                </div>
+                {categories.length > 0 && (
+                  <div className="flex gap-2 items-end">
+                    <div>
+                      <label className="text-sm font-medium text-gray-300 block mb-2">Categoria</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {categories.map((cat: any) => (
+                          <button
+                            key={cat}
+                            onClick={() => setFilters({ ...filters, category: filters.category === cat ? "" : cat })}
+                            className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
+                              filters.category === cat
+                                ? "bg-orange-600 text-white"
+                                : "bg-slate-700 text-gray-300 hover:bg-slate-600"
+                            }`}
+                          >
+                            {cat}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {filters.category && (
+                      <button
+                        onClick={() => setFilters({ ...filters, category: "" })}
+                        className="text-gray-400 hover:text-gray-300 transition-colors"
+                        title="Limpar filtro"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Table */}
+          <Card className="bg-slate-800/50 border-orange-700/20">
+            <CardHeader>
+              <CardTitle className="text-white">Consumíveis da Unidade</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8 text-gray-400">Carregando...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-orange-700/20 hover:bg-transparent">
+                        <TableHead className="text-gray-300">Produto</TableHead>
+                        <TableHead className="text-gray-300">Categoria</TableHead>
+                        <TableHead className="text-gray-300">Und.</TableHead>
+                        <TableHead className="text-gray-300 text-right">Est. Mínimo</TableHead>
+                        <TableHead className="text-gray-300 text-right">Est. Máximo</TableHead>
+                        <TableHead className="text-gray-300 text-right">Est. Atual</TableHead>
+                        <TableHead className="text-gray-300 text-right">Repor</TableHead>
+                        <TableHead className="text-gray-300">Status</TableHead>
+                        <TableHead className="text-gray-300">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {consumables.map((item: any) => (
+                        <TableRow key={item.id} className="border-orange-700/10 hover:bg-slate-700/30">
+                          <TableCell className="text-white font-medium">{item.name}</TableCell>
+                          <TableCell className="text-gray-300">{item.category}</TableCell>
+                          <TableCell className="text-gray-300">{item.unit}</TableCell>
+                          <TableCell className="text-right text-gray-300">{item.minStock}</TableCell>
+                          <TableCell className="text-right text-gray-300 text-green-400">{item.maxStock}</TableCell>
+                          <TableCell className="text-right text-gray-300 font-semibold">{item.currentStock}</TableCell>
+                          <TableCell className="text-right text-gray-300">{item.replenishStock}</TableCell>
+                          <TableCell>
+                            <div className={`inline-flex items-center gap-2 px-2 py-1 rounded ${getStatusColor(item.status)}`}>
+                              {getStatusIcon(item.status)}
+                              <span className="text-sm font-medium">{getStatusLabel(item.status)}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => handleEdit(item)}
+                                className="text-orange-500 hover:text-orange-400 transition-colors"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(item.id)}
+                                className="text-red-500 hover:text-red-400 transition-colors"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  {consumables.length === 0 && (
+                    <div className="text-center py-8 text-gray-400">Nenhum consumível cadastrado para esta unidade</div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {!selectedSpace && spaces.length > 0 && (
+        <Card className="bg-slate-800/50 border-orange-700/20">
+          <CardContent className="pt-6">
+            <p className="text-gray-400 text-center">Selecione uma unidade para visualizar e gerenciar consumíveis</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

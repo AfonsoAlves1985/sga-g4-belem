@@ -580,6 +580,93 @@ export const appRouter = router({
         return db.updateConsumableMonthly(id, data);
       }),
   }),
+
+  // ============ CONSUMABLE SPACES ============
+  consumableSpaces: router({
+    list: protectedProcedure
+      .query(async () => {
+        return db.listConsumableSpaces();
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        location: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createConsumableSpace(input);
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        location: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateConsumableSpace(id, data);
+      }),
+
+    delete: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input }) => {
+        return db.deleteConsumableSpace(input);
+      }),
+  }),
+
+  // ============ CONSUMABLES WITH SPACE ============
+  consumablesWithSpace: router({
+    list: protectedProcedure
+      .input(z.object({
+        spaceId: z.number().optional(),
+        search: z.string().optional(),
+        category: z.string().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return db.listConsumablesWithSpace(input);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        spaceId: z.number(),
+        name: z.string(),
+        category: z.string(),
+        unit: z.string(),
+        minStock: z.number().default(0),
+        maxStock: z.number().default(0),
+        currentStock: z.number().default(0),
+        replenishStock: z.number().default(0),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createConsumableWithSpace(input);
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        category: z.string().optional(),
+        unit: z.string().optional(),
+        minStock: z.number().optional(),
+        maxStock: z.number().optional(),
+        currentStock: z.number().optional(),
+        replenishStock: z.number().optional(),
+        status: z.enum(["ESTOQUE_OK", "ACIMA_DO_ESTOQUE", "REPOR_ESTOQUE"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateConsumableWithSpace(id, data);
+      }),
+
+    delete: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input }) => {
+        return db.deleteConsumableWithSpace(input);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

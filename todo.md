@@ -173,3 +173,12 @@
 - [x] Implementar alertas de stock crítico para Consumíveis (abaixo do mínimo)
 - [x] Adicionar widget de alertas na página Home
 - [x] Implementar filtro de alertas críticos na página Consumíveis
+
+
+## Fase 16: Sistema de Múltiplas Unidades em Consumíveis
+- [x] Criar schema Drizzle para tabela de unidades (spaces)
+- [x] Implementar procedures tRPC para CRUD de unidades
+- [x] Atualizar página Consumables com seletor de unidades
+- [x] Implementar CRUD de unidades (cadastro, edição, exclusão)
+- [x] Associar consumíveis a unidades específicas
+- [x] Adicionar testes Vitest para o novo sistema
