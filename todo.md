@@ -189,3 +189,8 @@
 - [x] Integrar edição inline na tabela de consumíveis
 - [x] Implementar salvamento automático ao perder foco
 - [x] Adicionar testes Vitest para edição inline
+
+
+## Fase 18: Cálculo Automático de Repor Estoque
+- [x] Implementar cálculo automático de Repor Estoque no formulário
+- [x] Atualizar testes Vitest para validar novo cálculo

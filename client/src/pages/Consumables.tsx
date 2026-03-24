@@ -115,6 +115,13 @@ export default function Consumables() {
     onError: (error) => toast.error(error.message),
   });
 
+  const calculateReplenishStock = (maxStock: number, currentStock: number) => {
+    if (currentStock === 0) {
+      return maxStock;
+    }
+    return Math.max(0, maxStock - currentStock);
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -129,6 +136,7 @@ export default function Consumables() {
   };
 
   const handleEdit = (item: any) => {
+    const replenish = calculateReplenishStock(item.maxStock, item.currentStock);
     setFormData({
       name: item.name,
       category: item.category,
@@ -136,7 +144,7 @@ export default function Consumables() {
       minStock: item.minStock,
       maxStock: item.maxStock,
       currentStock: item.currentStock,
-      replenishStock: item.replenishStock,
+      replenishStock: replenish,
     });
     setEditingId(item.id);
     setIsOpen(true);
@@ -317,7 +325,11 @@ export default function Consumables() {
                   <Input
                     type="number"
                     value={formData.maxStock}
-                    onChange={(e) => setFormData({ ...formData, maxStock: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => {
+                      const newMaxStock = parseInt(e.target.value) || 0;
+                      const newReplenish = calculateReplenishStock(newMaxStock, formData.currentStock);
+                      setFormData({ ...formData, maxStock: newMaxStock, replenishStock: newReplenish });
+                    }}
                     className="bg-slate-700 border-slate-600 text-white mt-1"
                   />
                 </div>
@@ -328,18 +340,23 @@ export default function Consumables() {
                   <Input
                     type="number"
                     value={formData.currentStock}
-                    onChange={(e) => setFormData({ ...formData, currentStock: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => {
+                      const newCurrentStock = parseInt(e.target.value) || 0;
+                      const newReplenish = calculateReplenishStock(formData.maxStock, newCurrentStock);
+                      setFormData({ ...formData, currentStock: newCurrentStock, replenishStock: newReplenish });
+                    }}
                     className="bg-slate-700 border-slate-600 text-white mt-1"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-300">Repor Estoque</label>
+                  <label className="text-sm font-medium text-gray-300">Repor Estoque (Automático)</label>
                   <Input
                     type="number"
                     value={formData.replenishStock}
-                    onChange={(e) => setFormData({ ...formData, replenishStock: parseInt(e.target.value) || 0 })}
-                    className="bg-slate-700 border-slate-600 text-white mt-1"
+                    disabled
+                    className="bg-slate-600 border-slate-600 text-gray-400 mt-1 cursor-not-allowed"
                   />
+                  <p className="text-xs text-gray-400 mt-1">Calculado automaticamente baseado no estoque máximo e atual</p>
                 </div>
               </div>
               <Button
