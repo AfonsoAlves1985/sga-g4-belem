@@ -22,7 +22,6 @@ import { Plus, Edit2, Trash2, AlertCircle, CheckCircle, AlertTriangle, X, Buildi
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { EditableCell } from "@/components/EditableCell";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 export default function Consumables() {
@@ -36,8 +35,8 @@ export default function Consumables() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [weekStartDate, setWeekStartDate] = useState<Date>(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
-  const [editingMovementCell, setEditingMovementCell] = useState<{ consumableId: number; day: string } | null>(null);
-  const [editingMovementValue, setEditingMovementValue] = useState<number>(0);
+  const [editingStockCell, setEditingStockCell] = useState<number | null>(null);
+  const [editingStockValue, setEditingStockValue] = useState<number>(0);
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -68,14 +67,6 @@ export default function Consumables() {
     {
       spaceId: selectedSpace || undefined,
       ...filters,
-    },
-    { enabled: !!selectedSpace }
-  );
-
-  const { data: movements = [], refetch: refetchMovements } = trpc.consumableWeeklyMovements.list.useQuery(
-    {
-      consumableId: 0,
-      spaceId: selectedSpace || 0,
     },
     { enabled: !!selectedSpace }
   );
@@ -112,7 +103,7 @@ export default function Consumables() {
   // Mutations for Spaces
   const createSpaceMutation = trpc.consumableSpaces.create.useMutation({
     onSuccess: () => {
-      toast.success("Unidade criada com sucesso!");
+      toast.success(t("app.success"));
       refetchSpaces();
       setIsSpaceDialogOpen(false);
       setSpaceFormData({ name: "", description: "", location: "" });
@@ -122,84 +113,51 @@ export default function Consumables() {
 
   const updateSpaceMutation = trpc.consumableSpaces.update.useMutation({
     onSuccess: () => {
-      toast.success("Unidade atualizada com sucesso!");
+      toast.success(t("app.success"));
       refetchSpaces();
+      setIsSpaceDialogOpen(false);
       setEditingSpaceId(null);
+      setSpaceFormData({ name: "", description: "", location: "" });
     },
     onError: (error) => toast.error(error.message),
   });
 
   const deleteSpaceMutation = trpc.consumableSpaces.delete.useMutation({
     onSuccess: () => {
-      toast.success("Unidade deletada com sucesso!");
+      toast.success(t("app.success"));
       refetchSpaces();
-      if (selectedSpace === editingSpaceId) {
-        setSelectedSpace(null);
-      }
+      if (selectedSpace === editingSpaceId) setSelectedSpace(null);
     },
     onError: (error) => toast.error(error.message),
   });
 
-  const updateMovementMutation = trpc.consumableWeeklyMovements.update.useMutation({
-    onSuccess: () => {
-      toast.success("Movimentação atualizada!");
-      refetchMovements();
-      setEditingMovementCell(null);
-    },
-    onError: (error) => toast.error(error.message),
-  });
-
-  const createMovementMutation = trpc.consumableWeeklyMovements.create.useMutation({
-    onSuccess: () => {
-      toast.success("Movimentação criada!");
-      refetchMovements();
-      setEditingMovementCell(null);
-    },
-    onError: (error) => toast.error(error.message),
-  });
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      category: "",
-      unit: "",
-      minStock: 0,
-      maxStock: 0,
-      currentStock: 0,
-      replenishStock: 0,
-    });
-    setEditingId(null);
-  };
-
+  // Handlers
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSpace) {
-      toast.error("Selecione uma unidade!");
+      toast.error("Selecione uma unidade");
       return;
     }
 
+    const payload = {
+      ...formData,
+      spaceId: selectedSpace,
+      replenishStock: formData.maxStock - formData.currentStock,
+    };
+
     if (editingId) {
-      await updateMutation.mutateAsync({
-        id: editingId,
-        ...formData,
-      });
+      updateMutation.mutate({ id: editingId, ...payload });
     } else {
-      await createMutation.mutateAsync({
-        spaceId: selectedSpace || 0,
-        ...formData,
-      });
+      createMutation.mutate(payload);
     }
   };
 
   const handleSpaceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSpaceId) {
-      await updateSpaceMutation.mutateAsync({
-        id: editingSpaceId,
-        ...spaceFormData,
-      });
+      updateSpaceMutation.mutate({ id: editingSpaceId, ...spaceFormData });
     } else {
-      await createSpaceMutation.mutateAsync(spaceFormData);
+      createSpaceMutation.mutate(spaceFormData);
     }
   };
 
@@ -226,34 +184,48 @@ export default function Consumables() {
     });
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Tem certeza que deseja deletar este consumível?")) {
-      await deleteMutation.mutateAsync(id);
+  const handleSpaceDelete = (spaceId: number) => {
+    if (window.confirm("Tem certeza que deseja deletar esta unidade?")) {
+      deleteSpaceMutation.mutate(spaceId);
     }
   };
 
-  const handleSpaceDelete = async (id: number) => {
-    if (confirm("Tem certeza que deseja deletar esta unidade?")) {
-      await deleteSpaceMutation.mutateAsync(id);
+  const handleDelete = (id: number) => {
+    if (window.confirm("Tem certeza que deseja deletar este consumível?")) {
+      deleteMutation.mutate(id);
     }
   };
 
-  const getStockStatus = (current: number, min: number, max: number) => {
-    if (current <= min) return { label: "Repor Estoque", color: "bg-red-500", icon: AlertTriangle };
-    if (current >= max) return { label: "Acima do Estoque", color: "bg-yellow-500", icon: AlertCircle };
-    return { label: "Estoque OK", color: "bg-green-500", icon: CheckCircle };
+  const handleUpdateStock = async (consumableId: number, newStock: number) => {
+    const consumable = consumables.find((c: any) => c.id === consumableId);
+    if (!consumable) return;
+
+    const replenishStock = consumable.maxStock - newStock;
+    updateMutation.mutate({
+      id: consumableId,
+      name: consumable.name,
+      category: consumable.category,
+      unit: consumable.unit,
+      minStock: consumable.minStock,
+      maxStock: consumable.maxStock,
+      currentStock: newStock,
+      replenishStock: replenishStock,
+    })
+
+    setEditingStockCell(null);
   };
 
-  const formatWeekRange = () => {
-    const start = new Date(weekStartDate);
-    const end = new Date(weekStartDate);
-    end.setDate(end.getDate() + 6);
-
-    const formatDate = (date: Date) => {
-      return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-    };
-
-    return `${formatDate(start)} - ${formatDate(end)}`;
+  const resetForm = () => {
+    setEditingId(null);
+    setFormData({
+      name: "",
+      category: "",
+      unit: "",
+      minStock: 0,
+      maxStock: 0,
+      currentStock: 0,
+      replenishStock: 0,
+    });
   };
 
   const handlePreviousWeek = () => {
@@ -268,62 +240,22 @@ export default function Consumables() {
     setSelectedDate(newDate);
   };
 
-  const getMovementForConsumable = (consumableId: number) => {
-    return movements.find(
-      (m: any) =>
-        m.consumableId === consumableId &&
-        new Date(m.weekStartDate).getFullYear() === weekStartDate.getFullYear() &&
-        new Date(m.weekStartDate).getMonth() === weekStartDate.getMonth() &&
-        new Date(m.weekStartDate).getDate() === weekStartDate.getDate()
-    );
+  const formatWeekRange = () => {
+    const start = new Date(weekStartDate);
+    const end = new Date(weekStartDate);
+    end.setDate(end.getDate() + 6);
+    return `${start.toLocaleDateString("pt-BR")} - ${end.toLocaleDateString("pt-BR")}`;
   };
 
-  const handleMovementEdit = async (consumableId: number, day: string, value: number) => {
-    const movement = getMovementForConsumable(consumableId);
-    const weekNumber = Math.ceil(
-      (weekStartDate.getDate() +
-        new Date(weekStartDate.getFullYear(), weekStartDate.getMonth(), 1).getDay()) /
-        7
-    );
-
-    if (movement) {
-      await updateMovementMutation.mutateAsync({
-        id: movement.id,
-        [day]: value,
-      } as any);
+  const getStockStatus = (current: number, min: number, max: number) => {
+    if (current < min) {
+      return { label: "Repor Estoque", color: "bg-red-600", icon: AlertTriangle };
+    } else if (current > max) {
+      return { label: "Acima do Estoque", color: "bg-yellow-600", icon: AlertCircle };
     } else {
-      const dayValues: Record<string, number> = {
-        mondayStock: 0,
-        tuesdayStock: 0,
-        wednesdayStock: 0,
-        thursdayStock: 0,
-        fridayStock: 0,
-        saturdayStock: 0,
-        sundayStock: 0,
-      };
-      dayValues[day] = value;
-
-      await createMovementMutation.mutateAsync({
-        consumableId,
-        spaceId: selectedSpace || 0,
-        weekStartDate: weekStartDate.toISOString().split("T")[0],
-        weekNumber,
-        year: weekStartDate.getFullYear(),
-        totalMovement: value,
-        ...dayValues,
-      } as any);
+      return { label: "Estoque OK", color: "bg-green-600", icon: CheckCircle };
     }
   };
-
-  const DAYS_OF_WEEK = [
-    { key: "mondayStock", label: "Seg" },
-    { key: "tuesdayStock", label: "Ter" },
-    { key: "wednesdayStock", label: "Qua" },
-    { key: "thursdayStock", label: "Qui" },
-    { key: "fridayStock", label: "Sex" },
-    { key: "saturdayStock", label: "Sab" },
-    { key: "sundayStock", label: "Dom" },
-  ];
 
   if (!selectedSpace) {
     return (
@@ -407,42 +339,42 @@ export default function Consumables() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {spaces.map((space: any) => (
-                <div
-                  key={space.id}
-                  onClick={() => setSelectedSpace(space.id)}
-                  className="p-4 rounded-lg border-2 border-slate-600 hover:border-orange-600 cursor-pointer transition-all duration-200 bg-slate-700/50 hover:bg-slate-700 group"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white truncate">{space.name}</h3>
-                      <p className="text-sm text-gray-400 mt-1 line-clamp-2">{space.description || "Sem descrição"}</p>
-                    </div>
-                    <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSpaceEdit(space);
-                          setIsSpaceDialogOpen(true);
-                        }}
-                        className="p-1.5 hover:bg-slate-600 rounded transition-colors"
-                        title="Editar unidade"
-                      >
-                        <Edit2 className="h-4 w-4 text-blue-400" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSpaceDelete(space.id);
-                        }}
-                        className="p-1.5 hover:bg-red-600/30 rounded transition-colors"
-                        title="Deletar unidade"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-400" />
-                      </button>
+                  <div
+                    key={space.id}
+                    onClick={() => setSelectedSpace(space.id)}
+                    className="p-4 rounded-lg border-2 border-slate-600 hover:border-orange-600 cursor-pointer transition-all duration-200 bg-slate-700/50 hover:bg-slate-700 group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-white truncate">{space.name}</h3>
+                        <p className="text-sm text-gray-400 mt-1 line-clamp-2">{space.description || "Sem descrição"}</p>
+                      </div>
+                      <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSpaceEdit(space);
+                            setIsSpaceDialogOpen(true);
+                          }}
+                          className="p-1.5 hover:bg-slate-600 rounded transition-colors"
+                          title="Editar unidade"
+                        >
+                          <Edit2 className="h-4 w-4 text-blue-400" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSpaceDelete(space.id);
+                          }}
+                          className="p-1.5 hover:bg-red-600/30 rounded transition-colors"
+                          title="Deletar unidade"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
               </div>
             )}
           </CardContent>
@@ -453,13 +385,12 @@ export default function Consumables() {
 
   return (
     <div className="space-y-6">
-      {/* Header com Seletor de Semana */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Consumíveis da Unidade</h1>
-          <p className="text-gray-400 mt-2">Gestão de consumíveis por unidade com histórico semanal</p>
+          <p className="text-gray-400 mt-2">Semana de {formatWeekRange()}</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <Dialog open={isSpaceDialogOpen} onOpenChange={setIsSpaceDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="border-slate-600 text-gray-300 hover:bg-slate-800">
@@ -467,31 +398,52 @@ export default function Consumables() {
                 Trocar Unidade
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-700">
+            <DialogContent className="bg-slate-800 border-slate-700 max-w-md">
               <DialogHeader>
                 <DialogTitle className="text-white">Selecione uma Unidade</DialogTitle>
+                <DialogDescription className="text-gray-400">Escolha uma unidade para gerenciar consumíveis</DialogDescription>
               </DialogHeader>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-96 overflow-y-auto">
                 {spaces.map((space: any) => (
-                  <button
-                    key={space.id}
-                    onClick={() => {
-                      setSelectedSpace(space.id);
-                      setIsSpaceDialogOpen(false);
-                    }}
-                    className={`w-full p-3 rounded-lg text-left transition-colors ${
-                      selectedSpace === space.id
-                        ? "bg-orange-600 text-white"
-                        : "bg-slate-700 text-gray-300 hover:bg-slate-600"
-                    }`}
-                  >
-                    {space.name}
-                  </button>
+                  <div key={space.id} className="flex items-center gap-2 p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition-colors group">
+                    <button
+                      onClick={() => {
+                        setSelectedSpace(space.id);
+                        setIsSpaceDialogOpen(false);
+                      }}
+                      className="flex-1 text-left"
+                    >
+                      <div className="font-medium text-white">{space.name}</div>
+                      <div className="text-xs text-gray-400">{space.description || "Sem descrição"}</div>
+                    </button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSpaceEdit(space);
+                          setIsSpaceDialogOpen(true);
+                        }}
+                        className="p-1 hover:bg-slate-600 rounded transition-colors"
+                        title="Editar"
+                      >
+                        <Edit2 className="h-4 w-4 text-blue-400" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSpaceDelete(space.id);
+                        }}
+                        className="p-1 hover:bg-red-600/30 rounded transition-colors"
+                        title="Deletar"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </DialogContent>
           </Dialog>
-
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
               <Button className="bg-orange-600 hover:bg-orange-700 text-white">
@@ -549,25 +501,14 @@ export default function Consumables() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-300">Est. Atual</label>
-                    <Input
-                      type="number"
-                      value={formData.currentStock}
-                      onChange={(e) => setFormData({ ...formData, currentStock: parseInt(e.target.value) || 0 })}
-                      className="bg-slate-700 border-slate-600 text-white mt-1"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-300">Repor Estoque</label>
-                    <Input
-                      type="number"
-                      value={formData.replenishStock}
-                      onChange={(e) => setFormData({ ...formData, replenishStock: parseInt(e.target.value) || 0 })}
-                      className="bg-slate-700 border-slate-600 text-white mt-1"
-                    />
-                  </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-300">Est. Atual</label>
+                  <Input
+                    type="number"
+                    value={formData.currentStock}
+                    onChange={(e) => setFormData({ ...formData, currentStock: parseInt(e.target.value) || 0 })}
+                    className="bg-slate-700 border-slate-600 text-white mt-1"
+                  />
                 </div>
                 <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700">
                   {editingId ? "Atualizar" : "Criar"} Consumível
@@ -626,7 +567,7 @@ export default function Consumables() {
       <Card className="bg-slate-800/50 border-slate-700">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white">Consumíveis da Unidade</CardTitle>
+            <CardTitle className="text-white">Consumíveis</CardTitle>
             <div className="flex gap-2">
               <Input
                 placeholder="Buscar..."
@@ -661,11 +602,6 @@ export default function Consumables() {
                     <TableHead className="text-gray-300">Est. Atual</TableHead>
                     <TableHead className="text-gray-300">Repor</TableHead>
                     <TableHead className="text-gray-300">Status</TableHead>
-                    {DAYS_OF_WEEK.map((day) => (
-                      <TableHead key={day.key} className="text-gray-300 text-center">
-                        {day.label}
-                      </TableHead>
-                    ))}
                     <TableHead className="text-gray-300">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -673,7 +609,7 @@ export default function Consumables() {
                   {consumables.map((consumable: any) => {
                     const status = getStockStatus(consumable.currentStock, consumable.minStock, consumable.maxStock);
                     const StatusIcon = status.icon;
-                    const movement = getMovementForConsumable(consumable.id);
+                    const replenishStock = consumable.maxStock - consumable.currentStock;
 
                     return (
                       <TableRow key={consumable.id} className="border-slate-700 hover:bg-slate-700/50">
@@ -682,56 +618,61 @@ export default function Consumables() {
                         <TableCell className="text-gray-300">{consumable.unit}</TableCell>
                         <TableCell className="text-gray-300">{consumable.minStock}</TableCell>
                         <TableCell className="text-gray-300">{consumable.maxStock}</TableCell>
-                        <TableCell className="text-green-400 font-semibold">{consumable.currentStock}</TableCell>
-                        <TableCell className="text-orange-400">{consumable.replenishStock}</TableCell>
+                        <TableCell>
+                          {editingStockCell === consumable.id ? (
+                            <div className="flex gap-1">
+                              <input
+                                type="number"
+                                value={editingStockValue}
+                                onChange={(e) => setEditingStockValue(parseInt(e.target.value) || 0)}
+                                className="w-16 px-2 py-1 bg-slate-700 border border-slate-600 text-white rounded text-sm"
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleUpdateStock(consumable.id, editingStockValue)}
+                                className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={() => setEditingStockCell(null)}
+                                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setEditingStockCell(consumable.id);
+                                setEditingStockValue(consumable.currentStock);
+                              }}
+                              className="text-green-400 font-semibold hover:text-green-300 cursor-pointer"
+                            >
+                              {consumable.currentStock}
+                            </button>
+                          )}
+                        </TableCell>
+                        <TableCell className={replenishStock > 0 ? "text-orange-400" : "text-green-400"}>
+                          {replenishStock > 0 ? replenishStock : "—"}
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <StatusIcon className={`h-4 w-4 ${status.color.replace("bg-", "text-")}`} />
                             <span className="text-sm text-gray-300">{status.label}</span>
                           </div>
                         </TableCell>
-                        {DAYS_OF_WEEK.map((day) => (
-                          <TableCell key={day.key} className="text-center">
-                            {editingMovementCell?.consumableId === consumable.id && editingMovementCell?.day === day.key ? (
-                              <input
-                                type="number"
-                                value={editingMovementValue}
-                                onChange={(e) => setEditingMovementValue(parseInt(e.target.value) || 0)}
-                                onBlur={() => {
-                                  handleMovementEdit(consumable.id, day.key, editingMovementValue);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    handleMovementEdit(consumable.id, day.key, editingMovementValue);
-                                  }
-                                }}
-                                autoFocus
-                                className="w-12 h-8 bg-slate-700 border border-orange-600 text-white text-center rounded"
-                              />
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setEditingMovementCell({ consumableId: consumable.id, day: day.key });
-                                  setEditingMovementValue(movement?.[day.key as keyof typeof movement] || 0);
-                                }}
-                                className="w-12 h-8 bg-slate-700 hover:bg-slate-600 text-white rounded text-sm font-medium transition-colors"
-                              >
-                                {movement?.[day.key as keyof typeof movement] || 0}
-                              </button>
-                            )}
-                          </TableCell>
-                        ))}
                         <TableCell>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(consumable)}
                               className="p-1 hover:bg-slate-600 rounded transition-colors"
                             >
-                              <Edit2 className="h-4 w-4 text-gray-400" />
+                              <Edit2 className="h-4 w-4 text-blue-400" />
                             </button>
                             <button
                               onClick={() => handleDelete(consumable.id)}
-                              className="p-1 hover:bg-red-600/20 rounded transition-colors"
+                              className="p-1 hover:bg-red-600/30 rounded transition-colors"
                             >
                               <Trash2 className="h-4 w-4 text-red-400" />
                             </button>

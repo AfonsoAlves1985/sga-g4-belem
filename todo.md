@@ -248,3 +248,12 @@
 - [x] Implementar exclusão de unidades na interface de seleção
 - [x] Melhorar feedback visual das ações (adicionar, editar, excluir)
 - [x] Testar fluxo completo de gerenciamento de unidades
+
+
+## Fase 25: Simplificação e Edição Inline de Estoque
+- [x] Remover colunas de movimentações diárias (Seg-Dom)
+- [x] Implementar edição inline de "Est. Atual"
+- [x] Carregar estoque correto ao mudar de semana
+- [x] Implementar cálculo automático de "Repor Estoque" (Máx - Atual)
+- [x] Atualizar status de estoque com base na reposição
+- [x] Testar edição inline e sincronização
