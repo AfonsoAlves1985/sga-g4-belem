@@ -240,3 +240,11 @@
 - [x] Permitir edição de movimentações diretamente na tabela
 - [x] Testar navegação entre semanas
 - [x] Testar sincronização de dados
+
+
+## Fase 24: Melhorias na Seleção de Unidades
+- [x] Garantir que adicionar unidades seja fácil e acessível
+- [x] Implementar edição de unidades na interface de seleção
+- [x] Implementar exclusão de unidades na interface de seleção
+- [x] Melhorar feedback visual das ações (adicionar, editar, excluir)
+- [x] Testar fluxo completo de gerenciamento de unidades

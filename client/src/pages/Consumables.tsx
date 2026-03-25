@@ -342,7 +342,7 @@ export default function Consumables() {
             </DialogTrigger>
             <DialogContent className="bg-slate-800 border-slate-700">
               <DialogHeader>
-                <DialogTitle className="text-white">Nova Unidade</DialogTitle>
+                <DialogTitle className="text-white">{editingSpaceId ? "Editar" : "Nova"} Unidade</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSpaceSubmit} className="space-y-4">
                 <div>
@@ -370,44 +370,72 @@ export default function Consumables() {
                     className="bg-slate-700 border-slate-600 text-white mt-1"
                   />
                 </div>
-                <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700">
-                  Criar Unidade
-                </Button>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1 bg-orange-600 hover:bg-orange-700">
+                    {editingSpaceId ? "Atualizar" : "Criar"} Unidade
+                  </Button>
+                  {editingSpaceId && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingSpaceId(null);
+                        setSpaceFormData({ name: "", description: "", location: "" });
+                        setIsSpaceDialogOpen(false);
+                      }}
+                      className="border-slate-600 text-gray-300 hover:bg-slate-800"
+                    >
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
               </form>
             </DialogContent>
           </Dialog>
         </div>
 
         <Card className="bg-slate-800/50 border-slate-700">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {spaces.map((space: any) => (
+          <CardHeader>
+            <CardTitle className="text-white">Selecione uma Unidade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {spaces.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                <p>Nenhuma unidade criada ainda.</p>
+                <p className="text-sm mt-2">Clique em "Nova Unidade" para começar.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {spaces.map((space: any) => (
                 <div
                   key={space.id}
                   onClick={() => setSelectedSpace(space.id)}
-                  className="p-4 rounded-lg border-2 border-slate-600 hover:border-orange-600 cursor-pointer transition-colors bg-slate-700/50"
+                  className="p-4 rounded-lg border-2 border-slate-600 hover:border-orange-600 cursor-pointer transition-all duration-200 bg-slate-700/50 hover:bg-slate-700 group"
                 >
                   <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-white">{space.name}</h3>
-                      <p className="text-sm text-gray-400 mt-1">{space.description}</p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-white truncate">{space.name}</h3>
+                      <p className="text-sm text-gray-400 mt-1 line-clamp-2">{space.description || "Sem descrição"}</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleSpaceEdit(space);
+                          setIsSpaceDialogOpen(true);
                         }}
-                        className="p-1 hover:bg-slate-600 rounded"
+                        className="p-1.5 hover:bg-slate-600 rounded transition-colors"
+                        title="Editar unidade"
                       >
-                        <Edit2 className="h-4 w-4 text-gray-400" />
+                        <Edit2 className="h-4 w-4 text-blue-400" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleSpaceDelete(space.id);
                         }}
-                        className="p-1 hover:bg-red-600/20 rounded"
+                        className="p-1.5 hover:bg-red-600/30 rounded transition-colors"
+                        title="Deletar unidade"
                       >
                         <Trash2 className="h-4 w-4 text-red-400" />
                       </button>
@@ -415,7 +443,8 @@ export default function Consumables() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
