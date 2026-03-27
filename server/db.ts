@@ -850,12 +850,15 @@ export async function upsertConsumableWeeklyStock(data: {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  // Converter weekStartDate para Date se for string
+  // Normalizar weekStartDate para DATE sem timezone
   let weekStart: Date;
   if (typeof data.weekStartDate === 'string') {
-    weekStart = new Date(data.weekStartDate + 'T00:00:00Z');
+    // Parse como YYYY-MM-DD
+    const [year, month, day] = data.weekStartDate.split('-').map(Number);
+    weekStart = new Date(year, month - 1, day);
   } else {
     weekStart = new Date(data.weekStartDate);
+    // Normalizar para meia-noite local
     weekStart.setHours(0, 0, 0, 0);
   }
 
@@ -1030,9 +1033,6 @@ export async function calculateMonthlyConsumption(data: {
   };
 }
 
-// Listar consumíveis com consumo mensal
-
-
 // Buscar estoque cumulativo (estoque final da semana anterior)
 export async function getPreviousWeekStock(data: {
   consumableId: number;
@@ -1043,13 +1043,17 @@ export async function getPreviousWeekStock(data: {
   if (!db) return null;
 
   // Converter para Date se for string
-  let weekDate = data.weekStartDate;
-  if (typeof weekDate === 'string') {
-    weekDate = new Date(weekDate + 'T00:00:00Z');
+  let weekDate: Date;
+  if (typeof data.weekStartDate === 'string') {
+    const [year, month, day] = data.weekStartDate.split('-').map(Number);
+    weekDate = new Date(year, month - 1, day);
+  } else {
+    weekDate = new Date(data.weekStartDate);
+    weekDate.setHours(0, 0, 0, 0);
   }
 
   // Calcular data da semana anterior (7 dias antes)
-  const previousWeekDate = new Date((weekDate as Date).getTime() - 7 * 24 * 60 * 60 * 1000);
+  const previousWeekDate = new Date(weekDate.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   // Buscar registro da semana anterior
   const previousWeek = await db.select().from(consumableWeeklyMovements)

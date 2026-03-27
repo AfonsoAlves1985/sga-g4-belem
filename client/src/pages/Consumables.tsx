@@ -65,8 +65,10 @@ export default function Consumables() {
 
   // Queries
   const { data: spaces = [], isLoading: spacesLoading, refetch: refetchSpaces } = trpc.consumableSpaces.list.useQuery();
-  // Converter weekStartDate para string YYYY-MM-DD para garantir consistência
-  const weekStartDateStr = weekStartDate.toISOString().split('T')[0];
+  // Converter weekStartDate para string YYYY-MM-DD usando data local (não UTC)
+  const weekStartDateStr = weekStartDate.getFullYear() + '-' + 
+    String(weekStartDate.getMonth() + 1).padStart(2, '0') + '-' + 
+    String(weekStartDate.getDate()).padStart(2, '0');
   
   const { data: consumables = [], isLoading, refetch } = trpc.consumablesWithSpace.listWithWeeklyData.useQuery(
     {

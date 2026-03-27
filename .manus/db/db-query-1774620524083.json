@@ -1,0 +1,30 @@
+{
+  "query": "SELECT cwm.*, cws.name FROM consumable_weekly_movements cwm LEFT JOIN consumables_with_space cws ON cwm.consumableId = cws.id WHERE cws.name = 'Arroz' ORDER BY cwm.weekStartDate DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute SELECT cwm.*, cws.name FROM consumable_weekly_movements cwm LEFT JOIN consumables_with_space cws ON cwm.consumableId = cws.id WHERE cws.name = 'Arroz' ORDER BY cwm.weekStartDate DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "10",
+      "consumableId": "210046",
+      "spaceId": "210025",
+      "weekStartDate": "2026-03-22",
+      "weekNumber": "4",
+      "year": "2026",
+      "mondayStock": "0",
+      "tuesdayStock": "0",
+      "wednesdayStock": "0",
+      "thursdayStock": "0",
+      "fridayStock": "0",
+      "saturdayStock": "0",
+      "sundayStock": "0",
+      "totalMovement": "15",
+      "status": "ESTOQUE_OK",
+      "createdAt": "2026-03-27 14:07:33",
+      "updatedAt": "2026-03-27 14:07:33",
+      "name": "Arroz"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tconsumableId\tspaceId\tweekStartDate\tweekNumber\tyear\tmondayStock\ttuesdayStock\twednesdayStock\tthursdayStock\tfridayStock\tsaturdayStock\tsundayStock\ttotalMovement\tstatus\tcreatedAt\tupdatedAt\tname\n10\t210046\t210025\t2026-03-22\t4\t2026\t0\t0\t0\t0\t0\t0\t0\t15\tESTOQUE_OK\t2026-03-27 14:07:33\t2026-03-27 14:07:33\tArroz\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}
