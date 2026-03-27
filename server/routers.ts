@@ -629,6 +629,28 @@ export const appRouter = router({
         return db.listConsumablesWithSpace(input);
       }),
 
+    listWithWeeklyData: protectedProcedure
+      .input(z.object({
+        spaceId: z.number().optional(),
+        search: z.string().optional(),
+        category: z.string().optional(),
+        weekStartDate: z.date().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return db.listConsumablesWithWeeklyData(input);
+      }),
+
+    updateWeeklyStock: protectedProcedure
+      .input(z.object({
+        consumableId: z.number(),
+        spaceId: z.number(),
+        weekStartDate: z.date(),
+        currentStock: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.upsertConsumableWeeklyStock(input);
+      }),
+
     create: protectedProcedure
       .input(z.object({
         spaceId: z.number(),

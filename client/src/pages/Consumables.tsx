@@ -63,13 +63,23 @@ export default function Consumables() {
 
   // Queries
   const { data: spaces = [], isLoading: spacesLoading, refetch: refetchSpaces } = trpc.consumableSpaces.list.useQuery();
-  const { data: consumables = [], isLoading, refetch } = trpc.consumablesWithSpace.list.useQuery(
+  const { data: consumables = [], isLoading, refetch } = trpc.consumablesWithSpace.listWithWeeklyData.useQuery(
     {
       spaceId: selectedSpace || undefined,
+      weekStartDate: weekStartDate,
       ...filters,
     },
     { enabled: !!selectedSpace }
   );
+
+  // Mutation para atualizar estoque semanal
+  const updateWeeklyStockMutation = trpc.consumablesWithSpace.updateWeeklyStock.useMutation({
+    onSuccess: () => {
+      toast.success(t("app.success"));
+      refetch();
+    },
+    onError: (error) => toast.error(error.message),
+  });
 
   // Mutations for Consumables
   const createMutation = trpc.consumablesWithSpace.create.useMutation({
@@ -197,20 +207,14 @@ export default function Consumables() {
   };
 
   const handleUpdateStock = async (consumableId: number, newStock: number) => {
-    const consumable = consumables.find((c: any) => c.id === consumableId);
-    if (!consumable) return;
+    if (!selectedSpace) return;
 
-    const replenishStock = consumable.maxStock - newStock;
-    updateMutation.mutate({
-      id: consumableId,
-      name: consumable.name,
-      category: consumable.category,
-      unit: consumable.unit,
-      minStock: consumable.minStock,
-      maxStock: consumable.maxStock,
+    updateWeeklyStockMutation.mutate({
+      consumableId,
+      spaceId: selectedSpace,
+      weekStartDate,
       currentStock: newStock,
-      replenishStock: replenishStock,
-    })
+    });
 
     setEditingStockCell(null);
   };

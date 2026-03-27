@@ -257,3 +257,12 @@
 - [x] Implementar cálculo automático de "Repor Estoque" (Máx - Atual)
 - [x] Atualizar status de estoque com base na reposição
 - [x] Testar edição inline e sincronização
+
+
+## Fase 26: Tabelas Semanais Independentes
+- [x] Criar tabela de estoque semanal no schema Drizzle
+- [x] Implementar procedures tRPC para carregar estoque por semana
+- [x] Implementar mutations para salvar estoque por semana
+- [x] Modificar UI para carregar dados semanais independentes
+- [x] Testar navegação entre semanas com dados diferentes
+- [x] Garantir que cada semana tem seus próprios dados

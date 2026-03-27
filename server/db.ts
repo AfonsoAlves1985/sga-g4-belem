@@ -726,3 +726,101 @@ export async function deleteConsumableMonthlyMovement(id: number) {
   if (!db) throw new Error("Database not available");
   return db.delete(consumableMonthlyMovements).where(eq(consumableMonthlyMovements.id, id));
 }
+
+
+// Carregar consumíveis com dados semanais específicos
+export async function listConsumablesWithWeeklyData(filters?: { spaceId?: number; search?: string; category?: string; weekStartDate?: Date }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Primeiro, obter todos os consumíveis da unidade
+  const conditions = [];
+  if (filters?.spaceId) conditions.push(eq(consumablesWithSpace.spaceId, filters.spaceId));
+  if (filters?.search) conditions.push(like(consumablesWithSpace.name, `%${filters.search}%`));
+  if (filters?.category) conditions.push(eq(consumablesWithSpace.category, filters.category));
+
+  let query = db.select().from(consumablesWithSpace);
+  if (conditions.length > 0) {
+    // @ts-ignore - Drizzle ORM type inference issue
+    query = query.where(and(...conditions));
+  }
+
+  const consumables = (await query.orderBy(asc(consumablesWithSpace.name))) as any[];
+
+  // Se não houver data de semana, retornar consumíveis com dados atuais
+  if (!filters?.weekStartDate || !filters?.spaceId) {
+    return consumables;
+  }
+
+  // Para cada consumível, buscar dados da semana específica
+  const weekData = await db.select().from(consumableWeeklyMovements)
+    .where(
+      and(
+        eq(consumableWeeklyMovements.spaceId, filters.spaceId),
+        eq(consumableWeeklyMovements.weekStartDate, filters.weekStartDate)
+      )
+    );
+
+  // Mapear dados semanais aos consumíveis
+  return consumables.map(consumable => {
+    const weeklyRecord = weekData.find((w: any) => w.consumableId === consumable.id);
+    if (weeklyRecord) {
+      return {
+        ...consumable,
+        currentStock: weeklyRecord.totalMovement || consumable.currentStock,
+        weeklyData: weeklyRecord,
+      };
+    }
+    return consumable;
+  });
+}
+
+
+// Criar ou atualizar estoque semanal
+export async function upsertConsumableWeeklyStock(data: {
+  consumableId: number;
+  spaceId: number;
+  weekStartDate: Date;
+  currentStock: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const weekStart = new Date(data.weekStartDate);
+  weekStart.setHours(0, 0, 0, 0);
+
+  // Verificar se já existe registro para esta semana
+  const existing = await db.select().from(consumableWeeklyMovements)
+    .where(
+      and(
+        eq(consumableWeeklyMovements.consumableId, data.consumableId),
+        eq(consumableWeeklyMovements.spaceId, data.spaceId),
+        eq(consumableWeeklyMovements.weekStartDate, weekStart)
+      )
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Atualizar registro existente
+    return db.update(consumableWeeklyMovements)
+      .set({
+        totalMovement: data.currentStock,
+        updatedAt: new Date(),
+      })
+      .where(eq(consumableWeeklyMovements.id, existing[0].id));
+  } else {
+    // Criar novo registro
+    const weekNumber = Math.ceil((weekStart.getDate()) / 7);
+    const year = weekStart.getFullYear();
+
+    return db.insert(consumableWeeklyMovements).values({
+      consumableId: data.consumableId,
+      spaceId: data.spaceId,
+      weekStartDate: weekStart,
+      weekNumber,
+      year,
+      totalMovement: data.currentStock,
+      status: "ESTOQUE_OK",
+    });
+  }
+}
