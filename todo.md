@@ -294,3 +294,12 @@
 - [x] Integrar histórico de alterações no cálculo mensal
 - [x] Adicionar indicador visual de consumo vs. reposição recomendada
 - [x] Testar coerência de dados entre semanas e mês
+
+
+## Fase 30: Correção de Exclusão de Unidades
+- [x] Criar função para deletar unidade com cascata de dependências
+- [x] Remover consumíveis vinculados à unidade
+- [x] Remover movimentações semanais vinculadas
+- [x] Remover histórico de auditoria vinculado
+- [x] Testar exclusão de unidades com dependências
+- [x] Validar integridade referencial

@@ -605,6 +605,24 @@ export async function updateConsumableSpace(id: number, data: Partial<InsertCons
 export async function deleteConsumableSpace(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+
+  // Buscar consumiveis da unidade
+  const consumables = await db.select().from(consumablesWithSpace)
+    .where(eq(consumablesWithSpace.spaceId, id));
+
+  // Remover dependencias
+  for (const consumable of consumables) {
+    await db.delete(consumableStockAuditLog)
+      .where(eq(consumableStockAuditLog.consumableId, consumable.id));
+    await db.delete(consumableWeeklyMovements)
+      .where(eq(consumableWeeklyMovements.consumableId, consumable.id));
+  }
+
+  // Remover consumiveis
+  await db.delete(consumablesWithSpace)
+    .where(eq(consumablesWithSpace.spaceId, id));
+
+  // Remover unidade
   return db.delete(consumableSpaces).where(eq(consumableSpaces.id, id));
 }
 
