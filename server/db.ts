@@ -748,7 +748,7 @@ export async function deleteConsumableMonthlyMovement(id: number) {
 
 
 // Carregar consumíveis com dados semanais específicos
-export async function listConsumablesWithWeeklyData(filters?: { spaceId?: number; search?: string; category?: string; weekStartDate?: string | Date }) {
+export async function listConsumablesWithWeeklyData(filters?: { spaceId?: number; search?: string; category?: string; weekStartDate?: string | Date }): Promise<any[]> {
   const db = await getDb();
   if (!db) return [];
 
@@ -786,18 +786,47 @@ export async function listConsumablesWithWeeklyData(filters?: { spaceId?: number
       )
     );
 
-  // Mapear dados semanais aos consumíveis
-  return consumables.map(consumable => {
-    const weeklyRecord = weekData.find((w: any) => w.consumableId === consumable.id);
-    if (weeklyRecord) {
+  // Mapear dados semanais aos consumiveis com estoque cumulativo
+  const result = await Promise.all(
+    consumables.map(async (consumable: any) => {
+      const weeklyRecord = weekData.find((w: any) => w.consumableId === consumable.id);
+      
+      // Buscar estoque da semana anterior
+      const previousWeekStock = await getPreviousWeekStock({
+        consumableId: consumable.id,
+        spaceId: filters.spaceId!,
+        weekStartDate: weekStartDate as Date,
+      });
+      
+      if (weeklyRecord) {
+        return {
+          ...consumable,
+          currentStock: weeklyRecord.totalMovement || consumable.currentStock,
+          previousWeekStock: previousWeekStock || 0,
+          weeklyData: weeklyRecord,
+        };
+      }
+      
       return {
         ...consumable,
-        currentStock: weeklyRecord.totalMovement || consumable.currentStock,
-        weeklyData: weeklyRecord,
+        previousWeekStock: previousWeekStock || 0,
       };
-    }
-    return consumable;
-  });
+    })
+  );
+  
+  return result;
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -992,3 +1021,48 @@ export async function calculateMonthlyConsumption(data: {
 }
 
 // Listar consumíveis com consumo mensal
+
+
+// Buscar estoque cumulativo (estoque final da semana anterior)
+export async function getPreviousWeekStock(data: {
+  consumableId: number;
+  spaceId: number;
+  weekStartDate: string | Date;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Converter para Date se for string
+  let weekDate = data.weekStartDate;
+  if (typeof weekDate === 'string') {
+    weekDate = new Date(weekDate + 'T00:00:00Z');
+  }
+
+  // Calcular data da semana anterior (7 dias antes)
+  const previousWeekDate = new Date((weekDate as Date).getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  // Buscar registro da semana anterior
+  const previousWeek = await db.select().from(consumableWeeklyMovements)
+    .where(
+      and(
+        eq(consumableWeeklyMovements.consumableId, data.consumableId),
+        eq(consumableWeeklyMovements.spaceId, data.spaceId),
+        eq(consumableWeeklyMovements.weekStartDate, previousWeekDate)
+      )
+    )
+    .limit(1);
+
+  if (previousWeek.length > 0) {
+    return previousWeek[0].totalMovement;
+  }
+
+  // Se não houver semana anterior, buscar estoque atual do consumível
+  const consumable = await db.select().from(consumablesWithSpace)
+    .where(eq(consumablesWithSpace.id, data.consumableId))
+    .limit(1);
+
+  return consumable.length > 0 ? consumable[0].currentStock : 0;
+}
+
+
+// Buscar estoque cumulativo (estoque final da semana anterior)

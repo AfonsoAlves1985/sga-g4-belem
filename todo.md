@@ -303,3 +303,12 @@
 - [x] Remover histórico de auditoria vinculado
 - [x] Testar exclusão de unidades com dependências
 - [x] Validar integridade referencial
+
+
+## Fase 31: Estoque Cumulativo por Timeline Semanal
+- [ ] Modificar queries para carregar estoque inicial da semana anterior
+- [ ] Implementar cálculo de estoque cumulativo
+- [ ] Atualizar UI para mostrar estoque inicial da semana anterior
+- [ ] Garantir que estoque final de uma semana = estoque inicial da próxima
+- [ ] Testar timeline de estoque em múltiplas semanas
+- [ ] Validar histórico cumulativo de consumo
