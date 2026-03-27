@@ -1079,3 +1079,105 @@ export async function getPreviousWeekStock(data: {
 }
 
 
+
+// Buscar histórico de estoque para gráfico de tendência (últimas 12 semanas)
+export async function getConsumableStockHistory(data: {
+  consumableId: number;
+  spaceId: number;
+  weeks?: number; // número de semanas a buscar (padrão 12)
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const weeksToFetch = data.weeks || 12;
+  
+  // Buscar registros das últimas N semanas
+  const history = await db.select({
+    weekStartDate: consumableWeeklyMovements.weekStartDate,
+    weekNumber: consumableWeeklyMovements.weekNumber,
+    year: consumableWeeklyMovements.year,
+    totalMovement: consumableWeeklyMovements.totalMovement,
+    status: consumableWeeklyMovements.status,
+  })
+    .from(consumableWeeklyMovements)
+    .where(
+      and(
+        eq(consumableWeeklyMovements.consumableId, data.consumableId),
+        eq(consumableWeeklyMovements.spaceId, data.spaceId)
+      )
+    )
+    .orderBy(consumableWeeklyMovements.weekStartDate)
+    .limit(weeksToFetch);
+
+  // Calcular consumo semanal (diferença entre semanas consecutivas)
+  const historyWithConsumption = history.map((record, index) => {
+    const previousRecord = index > 0 ? history[index - 1] : null;
+    const consumption = previousRecord 
+      ? previousRecord.totalMovement - record.totalMovement 
+      : 0;
+
+    const weekStartStr = record.weekStartDate instanceof Date
+      ? record.weekStartDate.toISOString().split('T')[0]
+      : typeof record.weekStartDate === 'string'
+      ? record.weekStartDate
+      : new Date(record.weekStartDate).toISOString().split('T')[0];
+
+    return {
+      weekStartDate: weekStartStr,
+      weekNumber: record.weekNumber,
+      year: record.year,
+      stock: record.totalMovement,
+      consumption: Math.max(0, consumption), // consumo não pode ser negativo
+      status: record.status,
+      label: `Sem ${record.weekNumber}/${record.year}`, // ex: "Sem 12/2026"
+    };
+  });
+
+  return historyWithConsumption;
+}
+
+// Buscar dados agregados para análise de padrões
+export async function getConsumableStockAnalysis(data: {
+  consumableId: number;
+  spaceId: number;
+  weeks?: number;
+}) {
+  const history = await getConsumableStockHistory(data);
+  
+  if (history.length === 0) {
+    return {
+      averageConsumption: 0,
+      maxConsumption: 0,
+      minConsumption: 0,
+      trend: "stable" as const,
+      totalConsumption: 0,
+    };
+  }
+
+  const consumptions = history.map(h => h.consumption);
+  const totalConsumption = consumptions.reduce((a, b) => a + b, 0);
+  const averageConsumption = totalConsumption / consumptions.length;
+  const maxConsumption = Math.max(...consumptions);
+  const minConsumption = Math.min(...consumptions);
+
+  // Calcular tendência (crescente, decrescente ou estável)
+  const recentConsumptions = consumptions.slice(-4); // últimas 4 semanas
+  const recentAverage = recentConsumptions.reduce((a, b) => a + b, 0) / recentConsumptions.length;
+  const olderConsumptions = consumptions.slice(0, -4);
+  const olderAverage = olderConsumptions.length > 0 
+    ? olderConsumptions.reduce((a, b) => a + b, 0) / olderConsumptions.length 
+    : recentAverage;
+
+  let trend: "increasing" | "decreasing" | "stable" = "stable";
+  const difference = recentAverage - olderAverage;
+  if (difference > olderAverage * 0.1) trend = "increasing";
+  else if (difference < -olderAverage * 0.1) trend = "decreasing";
+
+  return {
+    averageConsumption: Math.round(averageConsumption * 100) / 100,
+    maxConsumption,
+    minConsumption,
+    trend,
+    totalConsumption,
+  };
+}

@@ -23,6 +23,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { StockTrendChart } from "@/components/StockTrendChart";
 
 export default function Consumables() {
   const { t } = useLanguage();
@@ -39,6 +40,8 @@ export default function Consumables() {
   const [editingStockValue, setEditingStockValue] = useState<number>(0);
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [selectedConsumableForAudit, setSelectedConsumableForAudit] = useState<number | null>(null);
+  const [showTrendChart, setShowTrendChart] = useState(false);
+  const [selectedConsumableForChart, setSelectedConsumableForChart] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -87,6 +90,26 @@ export default function Consumables() {
       weekStartDate: weekStartDate,
     },
     { enabled: !!selectedSpace && showAuditLog }
+  );
+
+  // Query para histórico de estoque (gráfico de tendência)
+  const { data: stockHistory = [], isLoading: historyLoading } = trpc.consumableWeeklyMovements.getHistory.useQuery(
+    {
+      consumableId: selectedConsumableForChart?.id || 0,
+      spaceId: selectedSpace || 0,
+      weeks: 12,
+    },
+    { enabled: !!selectedConsumableForChart && !!selectedSpace }
+  );
+
+  // Query para análise de padrões
+  const { data: stockAnalysis } = trpc.consumableWeeklyMovements.getAnalysis.useQuery(
+    {
+      consumableId: selectedConsumableForChart?.id || 0,
+      spaceId: selectedSpace || 0,
+      weeks: 12,
+    },
+    { enabled: !!selectedConsumableForChart && !!selectedSpace }
   );
 
   // Mutation para atualizar estoque semanal
@@ -221,6 +244,11 @@ export default function Consumables() {
     if (window.confirm("Tem certeza que deseja deletar este consumível?")) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const handleShowTrendChart = (consumable: any) => {
+    setSelectedConsumableForChart(consumable);
+    setShowTrendChart(true);
   };
 
   const handleUpdateStock = async (consumableId: number, newStock: number) => {
@@ -380,10 +408,10 @@ export default function Consumables() {
                             handleSpaceEdit(space);
                             setIsSpaceDialogOpen(true);
                           }}
-                          className="p-1.5 hover:bg-slate-600 rounded transition-colors"
+                          className="p-1.5 hover:bg-blue-600/30 rounded transition-colors"
                           title="Editar unidade"
                         >
-                          <Edit2 className="h-4 w-4 text-blue-400" />
+                          <svg className="h-4 w-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                         </button>
                         <button
                           onClick={(e) => {
@@ -447,10 +475,10 @@ export default function Consumables() {
                           handleSpaceEdit(space);
                           setIsSpaceDialogOpen(true);
                         }}
-                        className="p-1 hover:bg-slate-600 rounded transition-colors"
+                        className="p-1 hover:bg-blue-600/30 rounded transition-colors"
                         title="Editar"
                       >
-                        <Edit2 className="h-4 w-4 text-blue-400" />
+                        <svg className="h-4 w-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                       </button>
                       <button
                         onClick={(e) => {
@@ -689,6 +717,15 @@ export default function Consumables() {
                         <TableCell>
                           <div className="flex gap-2">
                             <button
+                              onClick={() => handleShowTrendChart(consumable)}
+                              className="p-1 hover:bg-blue-600/30 rounded transition-colors"
+                              title="Ver gráfico de tendência"
+                            >
+                              <svg className="h-4 w-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                              </svg>
+                            </button>
+                            <button
                               onClick={() => handleEdit(consumable)}
                               className="p-1 hover:bg-slate-600 rounded transition-colors"
                             >
@@ -711,6 +748,28 @@ export default function Consumables() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Gráfico de Tendência */}
+      {showTrendChart && selectedConsumableForChart && (
+        <Dialog open={showTrendChart} onOpenChange={setShowTrendChart}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Histórico de Estoque - {selectedConsumableForChart.name}</DialogTitle>
+              <DialogDescription>
+                Análise de tendência de consumo semanal
+              </DialogDescription>
+            </DialogHeader>
+            <div className="w-full">
+              <StockTrendChart
+                data={stockHistory}
+                analysis={stockAnalysis}
+                consumableName={selectedConsumableForChart.name}
+                isLoading={historyLoading}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

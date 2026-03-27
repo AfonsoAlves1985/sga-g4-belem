@@ -320,3 +320,14 @@
 - [x] Garantir que estoque final de uma semana = estoque inicial da próxima
 - [x] Testar timeline de estoque em múltiplas semanas
 - [x] Validar que edições refletem corretamente na próxima semana
+
+
+## Fase 33: Histórico Visual de Estoque
+- [x] Criar queries para buscar histórico de estoque de 8-12 semanas anteriores
+- [x] Implementar cálculo de consumo semanal (estoque anterior - estoque atual)
+- [x] Criar componente de gráfico de tendência com Recharts
+- [x] Integrar gráfico na página de consumíveis (modal ou drawer)
+- [x] Adicionar filtros de período (últimas 4, 8, 12 semanas)
+- [x] Implementar análise de padrões de consumo
+- [ ] Adicionar testes Vitest para cálculos de consumo
+- [x] Testar visualização em diferentes tamanhos de tela

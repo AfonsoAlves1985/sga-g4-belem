@@ -754,6 +754,26 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return db.deleteConsumableWeeklyMovement(input);
       }),
+
+    getHistory: protectedProcedure
+      .input(z.object({
+        consumableId: z.number(),
+        spaceId: z.number(),
+        weeks: z.number().optional().default(12),
+      }))
+      .query(async ({ input }) => {
+        return db.getConsumableStockHistory(input);
+      }),
+
+    getAnalysis: protectedProcedure
+      .input(z.object({
+        consumableId: z.number(),
+        spaceId: z.number(),
+        weeks: z.number().optional().default(12),
+      }))
+      .query(async ({ input }) => {
+        return db.getConsumableStockAnalysis(input);
+      }),
   }),
 
   consumableMonthlyMovements: router({
