@@ -1312,3 +1312,129 @@ export async function deleteSupplierWithSpace(id: number) {
   if (!db) throw new Error("Database not available");
   return db.delete(suppliersWithSpace).where(eq(suppliersWithSpace.id, id));
 }
+
+
+// ============ ALERTAS DE ESTOQUE ============
+
+export async function getStockAlerts(spaceId?: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Buscar todos os consumíveis com espaço
+  if (spaceId) {
+    return db.select().from(consumablesWithSpace)
+      .where(eq(consumablesWithSpace.spaceId, spaceId))
+      .then((consumables: any[]) => processStockAlerts(consumables));
+  }
+
+  const consumables = (await db.select().from(consumablesWithSpace)) as any[];
+  return processStockAlerts(consumables);
+}
+
+async function processStockAlerts(consumables: any[]) {
+
+  const alerts = consumables
+    .map((consumable: any) => {
+      const currentStock = consumable.currentStock || 0;
+      const minStock = consumable.minStock || 0;
+      const criticalLevel = Math.floor(minStock * 0.5); // 50% do mínimo é crítico
+
+      let alertType = null;
+      let message = "";
+
+      if (currentStock < criticalLevel) {
+        alertType = "critical";
+        message = `CRÍTICO: Estoque muito baixo`;
+      } else if (currentStock < minStock) {
+        alertType = "warning";
+        message = `AVISO: Abaixo do nível recomendado`;
+      }
+
+      if (alertType) {
+        return {
+          id: consumable.id,
+          name: consumable.name,
+          category: consumable.category,
+          currentStock,
+          minStock,
+          criticalLevel,
+          unit: consumable.unit,
+          spaceName: consumable.spaceName || "Sem unidade",
+          spaceId: consumable.spaceId,
+          alertType,
+          message,
+        };
+      }
+
+      return null;
+    })
+    .filter((alert: any) => alert !== null)
+    .sort((a: any, b: any) => {
+      // Ordenar críticos primeiro, depois avisos
+      if (a.alertType === "critical" && b.alertType !== "critical") return -1;
+      if (a.alertType !== "critical" && b.alertType === "critical") return 1;
+      // Depois ordenar por quantidade (menor primeiro)
+      return a.currentStock - b.currentStock;
+    });
+
+  return alerts;
+}
+
+export async function getStockAlertsBySpace(spaceId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Buscar consumíveis da unidade específica
+  const consumables = (await db
+    .select()
+    .from(consumablesWithSpace)
+    .where(eq(consumablesWithSpace.spaceId, spaceId))) as any[];
+
+  // Buscar informações da unidade
+  const space = (await db
+    .select()
+    .from(consumableSpaces)
+    .where(eq(consumableSpaces.id, spaceId))
+    .limit(1))[0];
+
+  // Filtrar consumíveis com alertas
+  const alerts = consumables
+    .map((consumable: any) => {
+      const currentStock = consumable.currentStock || 0;
+      const minStock = consumable.minStock || 0;
+      const criticalLevel = Math.floor(minStock * 0.5);
+
+      let alertType = null;
+
+      if (currentStock < criticalLevel) {
+        alertType = "critical";
+      } else if (currentStock < minStock) {
+        alertType = "warning";
+      }
+
+      if (alertType) {
+        return {
+          id: consumable.id,
+          name: consumable.name,
+          category: consumable.category,
+          currentStock,
+          minStock,
+          criticalLevel,
+          unit: consumable.unit,
+          spaceName: space?.name || "Sem unidade",
+          spaceId: consumable.spaceId,
+          alertType,
+        };
+      }
+
+      return null;
+    })
+    .filter((alert: any) => alert !== null)
+    .sort((a: any, b: any) => {
+      if (a.alertType === "critical" && b.alertType !== "critical") return -1;
+      if (a.alertType !== "critical" && b.alertType === "critical") return 1;
+      return a.currentStock - b.currentStock;
+    });
+
+  return alerts;
+}

@@ -931,6 +931,22 @@ export const appRouter = router({
         return db.createStockAuditLog(input);
       }),
   }),
+
+  dashboard: router({
+    getStockAlerts: protectedProcedure
+      .input(z.object({
+        spaceId: z.number().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return db.getStockAlerts(input?.spaceId);
+      }),
+
+    getStockAlertsBySpace: protectedProcedure
+      .input(z.number())
+      .query(async ({ input }) => {
+        return db.getStockAlertsBySpace(input);
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

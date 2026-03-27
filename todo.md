@@ -393,3 +393,12 @@
 - [x] Implementar CRUD de fornecedores por unidade com edição inline
 - [x] Adicionar testes Vitest para fornecedores por espaço
 - [x] Validar funcionalidade completa
+
+
+## Fase 37: Alertas de Estoque no Dashboard
+
+- [x] Criar query tRPC para buscar consumíveis com alertas (críticos e abaixo do recomendado)
+- [x] Implementar seção de alertas no Dashboard
+- [x] Mostrar item, quantidade atual e unidade nos alertas
+- [x] Adicionar testes para alertas de estoque
+- [x] Validar funcionalidade completa
