@@ -7,6 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -35,6 +37,30 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  
+  // Endpoint para download de PDF
+  app.get("/api/download-pdf", (req, res) => {
+    try {
+      const pdfPath = req.query.path as string;
+      if (!pdfPath) {
+        return res.status(400).json({ error: "Path parameter is required" });
+      }
+      
+      // Validar que o caminho está em /tmp para segurança
+      if (!pdfPath.startsWith("/tmp/")) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const fileContent = readFileSync(pdfPath);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${pdfPath.split('/').pop()}"`)
+      res.send(fileContent);
+    } catch (error) {
+      console.error("Erro ao fazer download do PDF:", error);
+      res.status(500).json({ error: "Failed to download PDF" });
+    }
+  });
+  
   // tRPC API
   app.use(
     "/api/trpc",

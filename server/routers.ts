@@ -774,6 +774,20 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return db.getConsumableStockAnalysis(input);
       }),
+
+    exportReportPDF: protectedProcedure
+      .input(z.object({
+        spaceId: z.number(),
+        weekStartDate: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const { generateWeeklyReportPDF } = await import('./pdf-report');
+        const pdfPath = await generateWeeklyReportPDF({
+          spaceId: input.spaceId,
+          weekStartDate: input.weekStartDate,
+        });
+        return { success: true, pdfPath };
+      }),
   }),
 
   consumableMonthlyMovements: router({

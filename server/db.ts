@@ -1182,3 +1182,93 @@ export async function getConsumableStockAnalysis(data: {
     totalConsumption,
   };
 }
+
+
+// Gerar dados completos para relatório semanal em PDF
+export async function generateWeeklyReportData(data: {
+  spaceId: number;
+  weekStartDate: string | Date;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Converter para Date se for string
+  let weekDate: Date;
+  if (typeof data.weekStartDate === 'string') {
+    const [year, month, day] = data.weekStartDate.split('-').map(Number);
+    weekDate = new Date(year, month - 1, day);
+  } else {
+    weekDate = new Date(data.weekStartDate);
+    weekDate.setHours(0, 0, 0, 0);
+  }
+
+  // Buscar informações da unidade (space)
+  const space = await db.select().from(consumableSpaces)
+    .where(eq(consumableSpaces.id, data.spaceId))
+    .limit(1);
+
+  if (space.length === 0) {
+    throw new Error("Space not found");
+  }
+
+  // Buscar todos os consumíveis da unidade com dados da semana
+  const consumables = await listConsumablesWithWeeklyData({
+    spaceId: data.spaceId,
+    weekStartDate: weekDate,
+  });
+
+  // Para cada consumível, buscar histórico e análise
+  const consumablesWithAnalysis = await Promise.all(
+    consumables.map(async (consumable) => {
+      const history = await getConsumableStockHistory({
+        consumableId: consumable.id,
+        spaceId: data.spaceId,
+        weeks: 4, // últimas 4 semanas
+      });
+
+      const analysis = await getConsumableStockAnalysis({
+        consumableId: consumable.id,
+        spaceId: data.spaceId,
+        weeks: 4,
+      });
+
+      return {
+        ...consumable,
+        history,
+        analysis,
+      };
+    })
+  );
+
+  // Calcular estatísticas gerais
+  const totalConsumables = consumablesWithAnalysis.length;
+  const criticalStock = consumablesWithAnalysis.filter(
+    c => c.currentStock < c.minStock
+  ).length;
+  const lowStock = consumablesWithAnalysis.filter(
+    c => c.currentStock >= c.minStock && c.currentStock < c.maxStock * 0.3
+  ).length;
+  const normalStock = consumablesWithAnalysis.filter(
+    c => c.currentStock >= c.maxStock * 0.3
+  ).length;
+
+  const totalAverageConsumption = consumablesWithAnalysis.reduce(
+    (sum, c) => sum + c.analysis.averageConsumption,
+    0
+  );
+
+  return {
+    space: space[0],
+    weekStartDate: weekDate,
+    weekEndDate: new Date(weekDate.getTime() + 6 * 24 * 60 * 60 * 1000),
+    consumables: consumablesWithAnalysis,
+    statistics: {
+      totalConsumables,
+      criticalStock,
+      lowStock,
+      normalStock,
+      totalAverageConsumption: Math.round(totalAverageConsumption * 100) / 100,
+    },
+    generatedAt: new Date(),
+  };
+}

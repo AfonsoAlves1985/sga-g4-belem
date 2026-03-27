@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, AlertCircle, CheckCircle, AlertTriangle, X, Building2, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Edit2, Trash2, AlertCircle, CheckCircle, AlertTriangle, X, Building2, Calendar, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -294,6 +294,43 @@ export default function Consumables() {
     setSelectedDate(newDate);
   };
 
+  const exportReportMutation = trpc.consumableWeeklyMovements.exportReportPDF.useMutation();
+
+  const handleExportPDF = () => {
+    if (!selectedSpace) {
+      toast.error("Selecione uma unidade primeiro");
+      return;
+    }
+
+    const weekStartDateStr = weekStartDate.getFullYear() + '-' + 
+      String(weekStartDate.getMonth() + 1).padStart(2, '0') + '-' + 
+      String(weekStartDate.getDate()).padStart(2, '0');
+
+    exportReportMutation.mutate(
+      {
+        spaceId: selectedSpace,
+        weekStartDate: weekStartDateStr,
+      },
+      {
+        onSuccess: (result) => {
+          if (result.success && result.pdfPath) {
+            const link = document.createElement('a');
+            link.href = `/api/download-pdf?path=${encodeURIComponent(result.pdfPath)}`;
+            link.download = `relatorio_consumo_${weekStartDateStr}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success("Relatório exportado com sucesso!");
+          }
+        },
+        onError: (error) => {
+          console.error("Erro ao exportar PDF:", error);
+          toast.error("Erro ao exportar relatório");
+        },
+      }
+    );
+  };
+
   const formatWeekRange = () => {
     const start = new Date(weekStartDate);
     const end = new Date(weekStartDate);
@@ -445,6 +482,14 @@ export default function Consumables() {
           <p className="text-gray-400 mt-2">Semana de {formatWeekRange()}</p>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={handleExportPDF}
+            disabled={!selectedSpace || consumables.length === 0}
+            className="bg-orange-600 hover:bg-orange-700 text-white"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Exportar PDF
+          </Button>
           <Dialog open={isSpaceDialogOpen} onOpenChange={setIsSpaceDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="border-slate-600 text-gray-300 hover:bg-slate-800">

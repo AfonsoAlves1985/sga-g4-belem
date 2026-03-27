@@ -341,3 +341,14 @@
 - [x] Permitir valores zero sem restrição
 - [x] Testar sequência: 7 → 5 → 3 → 0
 - [x] Validar que 0 é salvo corretamente no banco
+
+
+## Fase 34: Exportação de Relatórios de Consumo Semanal em PDF
+- [ ] Criar queries para gerar dados completos de relatório semanal
+- [ ] Implementar helper de geração de PDF com ReportLab
+- [ ] Adicionar tabela de consumíveis com dados semanais no PDF
+- [ ] Incluir gráficos de tendência no PDF
+- [ ] Adicionar análise de padrões e insights no relatório
+- [ ] Implementar botão de exportação na página de consumíveis
+- [ ] Testar geração e download de PDF
+- [ ] Validar formatação e legibilidade do PDF
