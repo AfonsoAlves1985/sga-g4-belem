@@ -617,6 +617,78 @@ export const appRouter = router({
       }),
   }),
 
+  // ============ SUPPLIER SPACES ============
+  supplierSpaces: router({
+    list: protectedProcedure
+      .query(async () => {
+        return db.listSupplierSpaces();
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        location: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createSupplierSpace(input);
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        location: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateSupplierSpace(id, data);
+      }),
+
+    delete: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input }) => {
+        return db.deleteSupplierSpace(input);
+      }),
+  }),
+
+  // ============ CONTRACT SPACES ============
+  contractSpaces: router({
+    list: protectedProcedure
+      .query(async () => {
+        return db.listContractSpaces();
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        location: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createContractSpace(input);
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        location: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateContractSpace(id, data);
+      }),
+
+    delete: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input }) => {
+        return db.deleteContractSpace(input);
+      }),
+  }),
+
   // ============ CONSUMABLES WITH SPACE ============
   consumablesWithSpace: router({
     list: protectedProcedure

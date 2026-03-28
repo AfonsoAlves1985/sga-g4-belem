@@ -28,7 +28,7 @@ import {
 import { Plus, Edit2, Trash2, Building2, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { SpaceManager } from "@/components/SpaceManager";
+import { SupplierSpaceManager } from "@/components/SupplierSpaceManager";
 
 const SERVICE_TYPES = [
   "Limpeza",
@@ -59,7 +59,7 @@ export default function Suppliers() {
 
 
   // Queries
-  const { data: spaces = [], isLoading: spacesLoading, refetch: refetchSpaces } = trpc.consumableSpaces.list.useQuery();
+  const { data: spaces = [], isLoading: spacesLoading, refetch: refetchSpaces } = trpc.supplierSpaces.list.useQuery();
   const { data: suppliers = [], isLoading, refetch } = trpc.suppliersWithSpace.list.useQuery(
     { spaceId: selectedSpace || undefined },
     { enabled: !!selectedSpace }
@@ -100,7 +100,7 @@ export default function Suppliers() {
     },
   });
 
-  const createSpaceMutation = trpc.consumableSpaces.create.useMutation({
+  const createSpaceMutation = trpc.supplierSpaces.create.useMutation({
     onSuccess: () => {
       toast.success("Unidade criada com sucesso!");
       refetchSpaces();
@@ -110,7 +110,7 @@ export default function Suppliers() {
     },
   });
 
-  const updateSpaceMutation = trpc.consumableSpaces.update.useMutation({
+  const updateSpaceMutation = trpc.supplierSpaces.update.useMutation({
     onSuccess: () => {
       toast.success("Unidade atualizada com sucesso!");
       refetchSpaces();
@@ -120,7 +120,7 @@ export default function Suppliers() {
     },
   });
 
-  const deleteSpaceMutation = trpc.consumableSpaces.delete.useMutation({
+  const deleteSpaceMutation = trpc.supplierSpaces.delete.useMutation({
     onSuccess: () => {
       toast.success("Unidade deletada com sucesso!");
       refetchSpaces();
@@ -202,7 +202,7 @@ export default function Suppliers() {
           <h1 className="text-3xl font-bold text-white">Fornecedores</h1>
           <p className="text-gray-400 mt-2">Gestão de fornecedores por unidade</p>
         </div>
-        <SpaceManager
+        <SupplierSpaceManager
           spaces={spaces}
           selectedSpace={selectedSpace}
           onSelectSpace={setSelectedSpace}

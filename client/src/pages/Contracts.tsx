@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { AlertTriangle, Plus, Edit2, Trash2, Download, Calendar, DollarSign, Building2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { SpaceManager } from "@/components/SpaceManager";
+import { ContractSpaceManager } from "@/components/ContractSpaceManager";
 
 export default function Contracts() {
   const [selectedSpace, setSelectedSpace] = useState<number | null>(null);
@@ -22,7 +22,7 @@ export default function Contracts() {
     notes: "",
   });
 
-  const { data: spaces = [], isLoading: spacesLoading, refetch: refetchSpaces } = trpc.consumableSpaces.list.useQuery();
+  const { data: spaces = [], isLoading: spacesLoading, refetch: refetchSpaces } = trpc.contractSpaces.list.useQuery();
   const { data: contracts = [] } = trpc.contracts.list.useQuery(
     selectedSpace ? { spaceId: selectedSpace } : undefined,
     { enabled: !!selectedSpace }
@@ -58,7 +58,7 @@ export default function Contracts() {
     onError: () => toast.error("Erro ao deletar contrato"),
   });
 
-  const createSpaceMutation = trpc.consumableSpaces.create.useMutation({
+  const createSpaceMutation = trpc.contractSpaces.create.useMutation({
     onSuccess: () => {
       toast.success("Unidade criada com sucesso");
       refetchSpaces();
@@ -66,7 +66,7 @@ export default function Contracts() {
     onError: (error) => toast.error(`Erro: ${error.message}`),
   });
 
-  const updateSpaceMutation = trpc.consumableSpaces.update.useMutation({
+  const updateSpaceMutation = trpc.contractSpaces.update.useMutation({
     onSuccess: () => {
       toast.success("Unidade atualizada com sucesso");
       refetchSpaces();
@@ -74,7 +74,7 @@ export default function Contracts() {
     onError: (error) => toast.error(`Erro: ${error.message}`),
   });
 
-  const deleteSpaceMutation = trpc.consumableSpaces.delete.useMutation({
+  const deleteSpaceMutation = trpc.contractSpaces.delete.useMutation({
     onSuccess: () => {
       toast.success("Unidade deletada com sucesso");
       refetchSpaces();
@@ -150,7 +150,7 @@ export default function Contracts() {
           <h1 className="text-3xl font-bold text-gray-900">Contratos</h1>
           <p className="text-gray-600 mt-1">Gerencie contratos de serviços por unidade</p>
         </div>
-        <SpaceManager
+        <ContractSpaceManager
           spaces={spaces}
           selectedSpace={selectedSpace}
           onSelectSpace={setSelectedSpace}

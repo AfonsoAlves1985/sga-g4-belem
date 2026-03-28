@@ -469,3 +469,29 @@ export const contractAlerts = mysqlTable("contract_alerts", {
 
 export type ContractAlert = typeof contractAlerts.$inferSelect;
 export type InsertContractAlert = typeof contractAlerts.$inferInsert;
+
+// Unidades/Spaces para Fornecedores
+export const supplierSpaces = mysqlTable("supplier_spaces", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  location: varchar("location", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SupplierSpace = typeof supplierSpaces.$inferSelect;
+export type InsertSupplierSpace = typeof supplierSpaces.$inferInsert;
+
+// Unidades/Spaces para Contratos
+export const contractSpaces = mysqlTable("contract_spaces", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  location: varchar("location", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ContractSpace = typeof contractSpaces.$inferSelect;
+export type InsertContractSpace = typeof contractSpaces.$inferInsert;

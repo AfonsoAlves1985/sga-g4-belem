@@ -8,11 +8,12 @@ import {
   maintenanceRequests, InsertMaintenanceRequest,
   suppliers, InsertSupplier,
   suppliersWithSpace, InsertSupplierWithSpace,
+  supplierSpaces, InsertSupplierSpace,
   consumables, consumablesWeekly, consumablesMonthly, InsertConsumable, InsertConsumableWeekly, InsertConsumableMonthly,
   consumableSpaces, consumablesWithSpace, InsertConsumableSpace, InsertConsumableWithSpace,
   consumableWeeklyMovements, consumableMonthlyMovements, InsertConsumableWeeklyMovement, InsertConsumableMonthlyMovement,
   consumableStockAuditLog, InsertConsumableStockAuditLog,
-  contracts, contractsWithSpace, contractAlerts, InsertContract, InsertContractWithSpace, InsertContractAlert
+  contracts, contractsWithSpace, contractAlerts, contractSpaces, InsertContract, InsertContractWithSpace, InsertContractAlert, InsertContractSpace
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1584,4 +1585,73 @@ export async function generateContractAlerts(): Promise<void> {
       }
     }
   }
+}
+
+
+// ============ SUPPLIER SPACES ============
+export async function listSupplierSpaces() {
+  const db = await getDb();
+  if (!db) return [];
+  return (await db.select().from(supplierSpaces).orderBy(asc(supplierSpaces.name))) as any;
+}
+
+export async function createSupplierSpace(data: InsertSupplierSpace) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(supplierSpaces).values(data);
+  return result;
+}
+
+export async function updateSupplierSpace(id: number, data: Partial<InsertSupplierSpace>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(supplierSpaces).set(data).where(eq(supplierSpaces.id, id));
+}
+
+export async function deleteSupplierSpace(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Remover fornecedores da unidade
+  await db.delete(suppliersWithSpace)
+    .where(eq(suppliersWithSpace.spaceId, id));
+
+  // Remover unidade
+  return db.delete(supplierSpaces).where(eq(supplierSpaces.id, id));
+}
+
+// ============ CONTRACT SPACES ============
+export async function listContractSpaces() {
+  const db = await getDb();
+  if (!db) return [];
+  return (await db.select().from(contractSpaces).orderBy(asc(contractSpaces.name))) as any;
+}
+
+export async function createContractSpace(data: InsertContractSpace) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contractSpaces).values(data);
+  return result;
+}
+
+export async function updateContractSpace(id: number, data: Partial<InsertContractSpace>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(contractSpaces).set(data).where(eq(contractSpaces.id, id));
+}
+
+export async function deleteContractSpace(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Remover contratos da unidade
+  await db.delete(contractsWithSpace)
+    .where(eq(contractsWithSpace.spaceId, id));
+
+  // Remover alertas de contratos
+  await db.delete(contractAlerts)
+    .where(eq(contractAlerts.spaceId, id));
+
+  // Remover unidade
+  return db.delete(contractSpaces).where(eq(contractSpaces.id, id));
 }
