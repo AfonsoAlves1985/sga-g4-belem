@@ -19,12 +19,10 @@ export default function Dashboard() {
   // Calcular métricas
   const criticalConsumables = consumables.filter((c: any) => c.status === "REPOR_ESTOQUE");
   const criticalAlerts = stockAlerts.filter((a: any) => a.alertType === "critical");
-  const warningAlerts = stockAlerts.filter((a: any) => a.alertType === "warning");
 
   const metrics = {
     lowStockItems: criticalConsumables.length,
     criticalAlerts: criticalAlerts.length,
-    warningAlerts: warningAlerts.length,
     maintenanceOpen: maintenance.filter((m: any) => m.status === "aberto").length,
     maintenanceUrgent: maintenance.filter((m: any) => m.priority === "urgente").length,
     roomsAvailable: rooms.filter((r: any) => r.status === "disponivel").length,
@@ -64,10 +62,10 @@ export default function Dashboard() {
 
   const COLORS = ["#3b82f6", "#ef4444", "#f59e0b", "#10b981", "#8b5cf6"];
 
-  // Filtrar alertas por espaço se selecionado
+  // Filtrar apenas alertas críticos por espaço se selecionado
   const filteredAlerts = selectedSpace 
-    ? stockAlerts.filter((a: any) => a.spaceId === selectedSpace)
-    : stockAlerts;
+    ? criticalAlerts.filter((a: any) => a.spaceId === selectedSpace)
+    : criticalAlerts;
 
   return (
     <div className="space-y-6">
@@ -107,19 +105,6 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Avisos de Estoque</CardTitle>
-              <Package className="w-4 h-4 text-yellow-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-600">{metrics.warningAlerts}</div>
-            <p className="text-xs text-gray-600 mt-1">abaixo do recomendado</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium">Salas Disponíveis</CardTitle>
               <CheckCircle className="w-4 h-4 text-green-600" />
             </div>
@@ -150,9 +135,9 @@ export default function Dashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-red-900">⚠️ Alertas de Estoque de Consumíveis</CardTitle>
+                <CardTitle className="text-red-900">🔴 Alertas Críticos de Estoque</CardTitle>
                 <CardDescription className="text-red-700">
-                  {criticalAlerts.length} críticos e {warningAlerts.length} avisos
+                  {criticalAlerts.length} itens com estoque muito baixo
                 </CardDescription>
               </div>
             </div>
@@ -191,24 +176,14 @@ export default function Dashboard() {
                 filteredAlerts.map((alert: any) => (
                   <div
                     key={alert.id}
-                    className={`p-4 rounded-lg border-l-4 ${
-                      alert.alertType === "critical"
-                        ? "bg-red-100 border-l-red-600"
-                        : "bg-yellow-100 border-l-yellow-600"
-                    }`}
+                    className="p-4 rounded-lg border-l-4 bg-red-100 border-l-red-600"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-semibold text-gray-900">{alert.name}</p>
-                          <span
-                            className={`px-2 py-0.5 rounded text-xs font-bold ${
-                              alert.alertType === "critical"
-                                ? "bg-red-600 text-white"
-                                : "bg-yellow-600 text-white"
-                            }`}
-                          >
-                            {alert.alertType === "critical" ? "CRÍTICO" : "AVISO"}
+                          <span className="px-2 py-0.5 rounded text-xs font-bold bg-red-600 text-white">
+                            CRÍTICO
                           </span>
                         </div>
                         <p className="text-sm text-gray-700">
@@ -232,11 +207,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="ml-4 text-right">
-                        <div
-                          className={`text-2xl font-bold ${
-                            alert.alertType === "critical" ? "text-red-600" : "text-yellow-600"
-                          }`}
-                        >
+                        <div className="text-2xl font-bold text-red-600">
                           {alert.currentStock}
                         </div>
                         <p className="text-xs text-gray-600">{alert.unit}</p>

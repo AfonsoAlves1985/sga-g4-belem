@@ -408,3 +408,11 @@
 
 - [x] Erro ao usar Febracis em Consumíveis: "R.serviceTypes?.map is not a function"
 - [x] Erro ao deletar unidade Febracis: Constraint de chave estrangeira
+
+
+## Fase 38: Remover Aviso de Estoque do Dashboard
+
+- [x] Remover KPI de "Avisos de Estoque"
+- [x] Remover filtro de avisos na seção de alertas
+- [x] Manter apenas alertas críticos
+- [x] Testar e validar
