@@ -402,3 +402,9 @@
 - [x] Mostrar item, quantidade atual e unidade nos alertas
 - [x] Adicionar testes para alertas de estoque
 - [x] Validar funcionalidade completa
+
+
+## Bugs Reportados
+
+- [x] Erro ao usar Febracis em Consumíveis: "R.serviceTypes?.map is not a function"
+- [x] Erro ao deletar unidade Febracis: Constraint de chave estrangeira

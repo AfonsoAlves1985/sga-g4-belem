@@ -622,6 +622,10 @@ export async function deleteConsumableSpace(id: number) {
   await db.delete(consumablesWithSpace)
     .where(eq(consumablesWithSpace.spaceId, id));
 
+  // Remover fornecedores da unidade
+  await db.delete(suppliersWithSpace)
+    .where(eq(suppliersWithSpace.spaceId, id));
+
   // Remover unidade
   return db.delete(consumableSpaces).where(eq(consumableSpaces.id, id));
 }

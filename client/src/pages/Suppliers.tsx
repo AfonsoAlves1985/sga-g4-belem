@@ -516,11 +516,16 @@ export default function Suppliers() {
                       <TableCell className="text-white font-medium">{supplier.companyName}</TableCell>
                       <TableCell className="text-gray-300">
                         <div className="flex flex-wrap gap-1">
-                          {supplier.serviceTypes?.map((type: string) => (
-                            <span key={type} className="px-2 py-1 bg-orange-600/30 text-orange-300 rounded text-xs">
-                              {type}
-                            </span>
-                          ))}
+                          {(() => {
+                            const types = typeof supplier.serviceTypes === 'string' 
+                              ? JSON.parse(supplier.serviceTypes || '[]')
+                              : (supplier.serviceTypes || []);
+                            return types.map((type: string) => (
+                              <span key={type} className="px-2 py-1 bg-orange-600/30 text-orange-300 rounded text-xs">
+                                {type}
+                              </span>
+                            ));
+                          })()}
                         </div>
                       </TableCell>
                       <TableCell className="text-gray-300">{supplier.contact}</TableCell>
