@@ -1449,19 +1449,24 @@ export async function createContractWithSpace(spaceId: number, contract: InsertC
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(contracts).values(contract);
-  const contractId = (result as any).insertId || (result as any)[0]?.id;
+  // Insert the contract
+  await db.insert(contracts).values(contract);
   
-  if (!contractId) {
-    throw new Error("Failed to get contract ID after insertion");
+  // Get the last inserted contract ID by querying the most recent record
+  const lastContract = await db.select().from(contracts).orderBy(desc(contracts.id)).limit(1);
+  
+  if (!lastContract || !lastContract[0]) {
+    throw new Error("Failed to retrieve contract ID after insertion");
   }
+  
+  const contractId = lastContract[0].id;
   
   await db.insert(contractsWithSpace).values({
     spaceId,
-    contractId: Number(contractId),
+    contractId,
   });
 
-  return { contractId: Number(contractId) };
+  return { contractId };
 }
 
 export async function updateContractWithSpace(contractId: number, updates: Partial<InsertContract>): Promise<void> {
