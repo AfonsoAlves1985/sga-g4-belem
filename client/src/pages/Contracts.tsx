@@ -194,7 +194,7 @@ export default function Contracts() {
           </CardHeader>
           <CardContent className="space-y-2">
             {criticalAlerts.map((alert: any) => (
-              <div key={alert.id} className="p-3 bg-red-100 border border-red-300 rounded">
+              <div key={`critical-${alert.id}`} className="p-3 bg-red-100 border border-red-300 rounded">
                 <p className="font-semibold text-red-900">
                   Contrato vencendo em {alert.daysUntilEvent} dias
                 </p>
@@ -202,7 +202,7 @@ export default function Contracts() {
               </div>
             ))}
             {monthlyAlerts.map((alert: any) => (
-              <div key={alert.id} className="p-3 bg-yellow-100 border border-yellow-300 rounded">
+              <div key={`monthly-${alert.id}`} className="p-3 bg-yellow-100 border border-yellow-300 rounded">
                 <p className="font-semibold text-yellow-900">
                   Pagamento mensal vencido
                 </p>
