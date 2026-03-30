@@ -24,7 +24,6 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { StockTrendChart } from "@/components/StockTrendChart";
-import { InlineStockChart } from "@/components/InlineStockChart";
 import { SpaceManager } from "@/components/SpaceManager";
 import {
   DropdownMenu,
@@ -585,7 +584,6 @@ export default function Consumables() {
                     <TableHead className="text-gray-300">Est. Atual</TableHead>
                     <TableHead className="text-gray-300">Repor</TableHead>
                     <TableHead className="text-gray-300">Status</TableHead>
-                    <TableHead className="text-gray-300">Tendência</TableHead>
                     <TableHead className="text-gray-300">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -647,19 +645,7 @@ export default function Consumables() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <InlineStockChart consumableId={consumable.id} spaceId={selectedSpace} />
-                        </TableCell>
-                        <TableCell>
                           <div className="flex gap-2">
-                            <button
-                              onClick={() => handleShowTrendChart(consumable)}
-                              className="p-1 hover:bg-purple-600/30 rounded transition-colors"
-                              title="Expandir gráfico inline"
-                            >
-                              <svg className="h-4 w-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
-                            </button>
                             <button
                               onClick={() => handleShowTrendChart(consumable)}
                               className="p-1 hover:bg-blue-600/30 rounded transition-colors"
