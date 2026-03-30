@@ -30,12 +30,13 @@ export async function generatePDFReport(reportData: PDFReportData): Promise<stri
   const htmlContent = generateHTMLReport(reportData);
   
   // Usar puppeteer para converter HTML em PDF
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-  
+  let browser;
   try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+    
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
@@ -46,34 +47,70 @@ export async function generatePDFReport(reportData: PDFReportData): Promise<stri
       path: filepath,
       format: 'A4',
       margin: {
-        top: '20px',
-        right: '20px',
-        bottom: '20px',
-        left: '20px',
+        top: '15mm',
+        right: '15mm',
+        bottom: '15mm',
+        left: '15mm',
       },
       printBackground: true,
+      displayHeaderFooter: true,
+      headerTemplate: '<div style="font-size: 10px; width: 100%; text-align: center; padding: 5px;">SGA - Relatório de Consumo Semanal</div>',
+      footerTemplate: '<div style="font-size: 10px; width: 100%; text-align: center; padding: 5px;"><span class="pageNumber"></span> de <span class="totalPages"></span></div>',
     });
     
     return filepath;
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    throw new Error(`Falha ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   } finally {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 
 function generateHTMLReport(reportData: PDFReportData): string {
-  const consumablesRows = reportData.consumables
-    .map(c => `
-      <tr>
-        <td style="border: 1px solid #ddd; padding: 8px;">${c.name}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">${c.category || '-'}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${c.currentStock}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${c.minStock}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${c.maxStock}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">${c.repor}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: center; background-color: ${getStatusColor(c.status)}; color: ${getStatusTextColor(c.status)}; font-weight: bold;">${c.status}</td>
-      </tr>
-    `)
-    .join('');
+  // Dividir consumíveis em grupos de 15 por página
+  const itemsPerPage = 15;
+  const pages: typeof reportData.consumables[] = [];
+  
+  for (let i = 0; i < reportData.consumables.length; i += itemsPerPage) {
+    pages.push(reportData.consumables.slice(i, i + itemsPerPage));
+  }
+
+  const consumablesPages = pages.map((pageItems, pageIndex) => `
+    <div class="page-break">
+      <h3 style="margin-top: 0; color: #FF8C00; border-bottom: 2px solid #FF8C00; padding-bottom: 8px;">
+        📋 DETALHES DOS CONSUMÍVEIS - Página ${pageIndex + 1} de ${pages.length}
+      </h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Categoria</th>
+            <th>Est. Atual</th>
+            <th>Est. Mín.</th>
+            <th>Est. Máx.</th>
+            <th>Repor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pageItems.map(c => `
+            <tr>
+              <td>${c.name}</td>
+              <td>${c.category || '-'}</td>
+              <td style="text-align: center;">${c.currentStock}</td>
+              <td style="text-align: center;">${c.minStock}</td>
+              <td style="text-align: center;">${c.maxStock}</td>
+              <td style="text-align: center;">${c.repor}</td>
+              <td style="text-align: center; background-color: ${getStatusColor(c.status)}; color: ${getStatusTextColor(c.status)}; font-weight: bold; border-radius: 3px; padding: 4px;">${c.status}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `).join('');
 
   const totalPercentage = reportData.statistics.totalConsumables > 0 ? 100 : 0;
   const criticalPercentage = reportData.statistics.totalConsumables > 0 
@@ -100,41 +137,47 @@ function generateHTMLReport(reportData: PDFReportData): string {
           box-sizing: border-box;
         }
         
-        body {
-          font-family: Arial, sans-serif;
+        html, body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
           color: #333;
-          line-height: 1.6;
+          line-height: 1.5;
+          background: white;
         }
         
-        .container {
+        .page-break {
+          page-break-after: always;
           padding: 20px;
-          max-width: 1000px;
-          margin: 0 auto;
+          min-height: 280mm;
+        }
+        
+        .page-break:last-child {
+          page-break-after: avoid;
         }
         
         .header {
           text-align: center;
-          margin-bottom: 30px;
+          margin-bottom: 20px;
           border-bottom: 3px solid #FF8C00;
-          padding-bottom: 15px;
+          padding-bottom: 12px;
         }
         
         .header h1 {
-          font-size: 24px;
+          font-size: 22px;
           color: #FF8C00;
-          margin-bottom: 10px;
+          margin-bottom: 8px;
         }
         
         .info-section {
           background-color: #f5f5f5;
-          padding: 15px;
-          margin-bottom: 20px;
+          padding: 12px;
+          margin-bottom: 15px;
           border-left: 4px solid #FF8C00;
+          font-size: 13px;
+          line-height: 1.6;
         }
         
         .info-section p {
-          margin: 5px 0;
-          font-size: 14px;
+          margin: 4px 0;
         }
         
         .info-section strong {
@@ -142,38 +185,39 @@ function generateHTMLReport(reportData: PDFReportData): string {
         }
         
         .section-title {
-          font-size: 18px;
+          font-size: 16px;
           font-weight: bold;
           color: #FF8C00;
-          margin-top: 25px;
-          margin-bottom: 15px;
+          margin-top: 18px;
+          margin-bottom: 12px;
           border-bottom: 2px solid #FF8C00;
-          padding-bottom: 8px;
+          padding-bottom: 6px;
         }
         
         .summary-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 15px;
-          margin-bottom: 20px;
+          gap: 10px;
+          margin-bottom: 15px;
         }
         
         .summary-card {
           background-color: #f9f9f9;
-          padding: 15px;
+          padding: 12px;
           border: 1px solid #ddd;
-          border-radius: 4px;
+          border-radius: 3px;
           text-align: center;
+          font-size: 12px;
         }
         
         .summary-card .label {
-          font-size: 12px;
+          font-size: 11px;
           color: #666;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
         }
         
         .summary-card .value {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: bold;
           color: #FF8C00;
         }
@@ -181,8 +225,8 @@ function generateHTMLReport(reportData: PDFReportData): string {
         table {
           width: 100%;
           border-collapse: collapse;
-          margin-bottom: 20px;
-          font-size: 13px;
+          margin-bottom: 15px;
+          font-size: 12px;
         }
         
         table thead {
@@ -191,13 +235,14 @@ function generateHTMLReport(reportData: PDFReportData): string {
         }
         
         table th {
-          padding: 12px;
+          padding: 10px;
           text-align: left;
           font-weight: bold;
+          border: 1px solid #FF8C00;
         }
         
         table td {
-          padding: 10px;
+          padding: 8px;
           border: 1px solid #ddd;
         }
         
@@ -205,81 +250,73 @@ function generateHTMLReport(reportData: PDFReportData): string {
           background-color: #f9f9f9;
         }
         
-        .status-critico {
-          background-color: #FF0000 !important;
-          color: white !important;
-          font-weight: bold;
-        }
-        
-        .status-baixo {
-          background-color: #FFA500 !important;
-          color: #000 !important;
-          font-weight: bold;
-        }
-        
-        .status-ok {
-          background-color: #00AA00 !important;
-          color: white !important;
-          font-weight: bold;
-        }
-        
         .analysis-section {
-          margin-top: 20px;
+          margin-top: 15px;
         }
         
         .analysis-row {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 15px;
-          margin-bottom: 10px;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-bottom: 8px;
         }
         
         .analysis-item {
-          padding: 12px;
+          padding: 10px;
           border: 1px solid #ddd;
-          border-radius: 4px;
+          border-radius: 3px;
+          font-size: 12px;
         }
         
         .analysis-item .label {
-          font-size: 12px;
+          font-size: 11px;
           color: #666;
-          margin-bottom: 5px;
+          margin-bottom: 4px;
         }
         
         .analysis-item .value {
-          font-size: 18px;
+          font-size: 16px;
           font-weight: bold;
           color: #FF8C00;
         }
         
         .analysis-item .percentage {
-          font-size: 12px;
+          font-size: 11px;
           color: #999;
-          margin-top: 5px;
+          margin-top: 4px;
         }
         
         .footer {
-          margin-top: 30px;
-          padding-top: 15px;
+          margin-top: 20px;
+          padding-top: 10px;
           border-top: 1px solid #ddd;
           text-align: center;
-          font-size: 11px;
+          font-size: 10px;
           color: #999;
+        }
+        
+        h3 {
+          font-size: 14px;
         }
         
         @media print {
           body {
             margin: 0;
             padding: 0;
+            background: white;
           }
-          .container {
-            padding: 0;
+          .page-break {
+            page-break-after: always;
+            margin: 0;
+            padding: 15mm;
+            min-height: auto;
           }
         }
       </style>
     </head>
     <body>
-      <div class="container">
+      <!-- PÁGINA 1: RESUMO -->
+      <div class="page-break">
         <div class="header">
           <h1>📊 RELATÓRIO DE CONSUMO SEMANAL</h1>
         </div>
@@ -310,24 +347,6 @@ function generateHTMLReport(reportData: PDFReportData): string {
           </div>
         </div>
         
-        <div class="section-title">📋 DETALHES DOS CONSUMÍVEIS</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Categoria</th>
-              <th>Est. Atual</th>
-              <th>Est. Mínimo</th>
-              <th>Est. Máximo</th>
-              <th>Repor</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${consumablesRows}
-          </tbody>
-        </table>
-        
         <div class="section-title">📊 ANÁLISE DE ESTOQUE</div>
         <div class="analysis-section">
           <div class="analysis-row">
@@ -350,9 +369,12 @@ function generateHTMLReport(reportData: PDFReportData): string {
         </div>
         
         <div class="footer">
-          <p>Este relatório foi gerado automaticamente pelo Sistema de Gestão de Facilities - SGA</p>
+          <p>Sistema de Gestão de Facilities - SGA | Relatório Automático</p>
         </div>
       </div>
+      
+      <!-- PÁGINAS DE DETALHES -->
+      ${consumablesPages}
     </body>
     </html>
   `;
