@@ -435,7 +435,7 @@ export const contractsWithSpace = mysqlTable("contracts_with_space", {
 }, (table) => ({
   spaceFk: foreignKey({
     columns: [table.spaceId],
-    foreignColumns: [consumableSpaces.id],
+    foreignColumns: [contractSpaces.id],
   }),
   contractFk: foreignKey({
     columns: [table.contractId],

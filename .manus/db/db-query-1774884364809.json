@@ -1,0 +1,15 @@
+{
+  "query": "SELECT c.id, c.spaceId, c.contractId \nFROM contracts_with_space c \nLEFT JOIN contract_spaces cs ON c.spaceId = cs.id \nWHERE cs.id IS NULL;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute SELECT c.id, c.spaceId, c.contractId \nFROM contracts_with_space c \nLEFT JOIN contract_spaces cs ON c.spaceId = cs.id \nWHERE cs.id IS NULL;",
+  "rows": [
+    {
+      "id": "1",
+      "spaceId": "210017",
+      "contractId": "3"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tspaceId\tcontractId\n1\t210017\t3\n",
+  "stderr": "",
+  "execution_time_ms": 209
+}
