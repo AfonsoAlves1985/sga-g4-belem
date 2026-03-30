@@ -1,0 +1,24 @@
+{
+  "query": "SELECT CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'suppliers_with_space';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute SELECT CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME = 'suppliers_with_space';",
+  "rows": [
+    {
+      "CONSTRAINT_NAME": "PRIMARY",
+      "TABLE_NAME": "suppliers_with_space",
+      "COLUMN_NAME": "id",
+      "REFERENCED_TABLE_NAME": "NULL",
+      "REFERENCED_COLUMN_NAME": "NULL"
+    },
+    {
+      "CONSTRAINT_NAME": "suppliers_with_space_spaceId_consumable_spaces_id_fk",
+      "TABLE_NAME": "suppliers_with_space",
+      "COLUMN_NAME": "spaceId",
+      "REFERENCED_TABLE_NAME": "consumable_spaces",
+      "REFERENCED_COLUMN_NAME": "id"
+    }
+  ],
+  "messages": [],
+  "stdout": "CONSTRAINT_NAME\tTABLE_NAME\tCOLUMN_NAME\tREFERENCED_TABLE_NAME\tREFERENCED_COLUMN_NAME\nPRIMARY\tsuppliers_with_space\tid\tNULL\tNULL\nsuppliers_with_space_spaceId_consumable_spaces_id_fk\tsuppliers_with_space\tspaceId\tconsumable_spaces\tid\n",
+  "stderr": "",
+  "execution_time_ms": 322
+}
