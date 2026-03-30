@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO consumable_weekly_movements (consumableId, spaceId, weekStartDate, weekNumber, year, totalMovement, status) VALUES \n(360001, 330001, '2026-03-02', 10, 2026, 10, 'ESTOQUE_OK'),\n(360001, 330001, '2026-03-09', 11, 2026, 9, 'ESTOQUE_OK'),\n(360001, 330001, '2026-03-16', 12, 2026, 7, 'ESTOQUE_OK'),\n(360001, 330001, '2026-03-23', 13, 2026, 5, 'ESTOQUE_OK'),\n(360001, 330001, '2026-03-30', 14, 2026, 3, 'ESTOQUE_OK');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute INSERT INTO consumable_weekly_movements (consumableId, spaceId, weekStartDate, weekNumber, year, totalMovement, status) VALUES \n(360001, 330001, '2026-03-02', 10, 2026, 10, 'ESTOQUE_OK'),\n(360001, 330001, '2026-03-09', 11, 2026, 9, 'ESTOQUE_OK'),\n(360001, 330001, '2026-03-16', 12, 2026, 7, 'ESTOQUE_OK'),\n(360001, 330001, '2026-03-23', 13, 2026, 5, 'ESTOQUE_OK'),\n(360001, 330001, '2026-03-30', 14, 2026, 3, 'ESTOQUE_OK');",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 72
+}

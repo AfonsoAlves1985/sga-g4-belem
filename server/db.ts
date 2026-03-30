@@ -1196,11 +1196,15 @@ export async function getConsumableStockHistory(data: {
     .limit(weeksToFetch);
 
   // Calcular consumo semanal (diferença entre semanas consecutivas)
+  // O consumo é calculado como: estoque anterior - estoque atual
   const historyWithConsumption = history.map((record, index) => {
-    const previousRecord = index > 0 ? history[index - 1] : null;
-    const consumption = previousRecord 
-      ? previousRecord.totalMovement - record.totalMovement 
-      : 0;
+    let consumption = 0;
+    
+    if (index > 0) {
+      const previousRecord = history[index - 1];
+      // Se o estoque anterior é maior que o atual, houve consumo
+      consumption = Math.max(0, previousRecord.totalMovement - record.totalMovement);
+    }
 
     const weekStartStr = record.weekStartDate instanceof Date
       ? record.weekStartDate.toISOString().split('T')[0]
@@ -1212,8 +1216,8 @@ export async function getConsumableStockHistory(data: {
       weekStartDate: weekStartStr,
       weekNumber: record.weekNumber,
       year: record.year,
-      stock: record.totalMovement,
-      consumption: Math.max(0, consumption), // consumo não pode ser negativo
+      stock: record.totalMovement, // Estoque atual da semana
+      consumption: consumption, // Consumo calculado pela diferença
       status: record.status,
       label: `Sem ${record.weekNumber}/${record.year}`, // ex: "Sem 12/2026"
     };
