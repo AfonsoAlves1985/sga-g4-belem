@@ -71,6 +71,13 @@
       "when": 1774748985750,
       "tag": "0009_eminent_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1774887648977,
+      "tag": "0010_slim_maestro",
+      "breakpoints": true
     }
   ]
 }

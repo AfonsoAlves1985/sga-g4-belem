@@ -6,6 +6,7 @@ import {
   teams, schedules, InsertTeam, InsertSchedule,
   rooms, roomReservations, InsertRoom, InsertRoomReservation,
   maintenanceRequests, InsertMaintenanceRequest,
+  maintenanceSpaces,
   suppliers, InsertSupplier,
   suppliersWithSpace, InsertSupplierWithSpace,
   supplierSpaces, InsertSupplierSpace,
@@ -385,6 +386,39 @@ export async function deleteMaintenanceRequest(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.delete(maintenanceRequests).where(eq(maintenanceRequests.id, id));
+}
+
+// ============ MAINTENANCE SPACES ============
+
+export async function listMaintenanceSpaces() {
+  const db = await getDb();
+  if (!db) return [];
+  return (await db.select().from(maintenanceSpaces).orderBy(asc(maintenanceSpaces.name))) as any;
+}
+
+export async function createMaintenanceSpace(data: { name: string; description?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(maintenanceSpaces).values(data);
+  return result;
+}
+
+export async function updateMaintenanceSpace(id: number, data: { name?: string; description?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(maintenanceSpaces).set(data).where(eq(maintenanceSpaces.id, id));
+}
+
+export async function deleteMaintenanceSpace(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Remover todas as requisições de manutenção da unidade
+  await db.delete(maintenanceRequests)
+    .where(eq(maintenanceRequests.spaceId, id));
+
+  // Remover unidade
+  return db.delete(maintenanceSpaces).where(eq(maintenanceSpaces.id, id));
 }
 
 // ============ FORNECEDORES ============

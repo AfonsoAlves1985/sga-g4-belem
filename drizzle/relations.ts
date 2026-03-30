@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { consumables, consumablesMonthly, consumablesWeekly, consumableSpaces, consumablesWithSpace, contracts, contractAlerts, contractsWithSpace, contractSpaces, inventory, inventoryMovements, users, teams, maintenanceRequests, rooms, roomReservations, schedules, suppliersWithSpace } from "./schema";
+import { consumables, consumablesMonthly, consumablesWeekly, consumableSpaces, consumablesWithSpace, contractAlerts, contracts, contractsWithSpace, contractSpaces, inventory, inventoryMovements, users, teams, maintenanceRequests, maintenanceSpaces, rooms, roomReservations, schedules, supplierSpaces, suppliersWithSpace } from "./schema";
 
 export const consumablesMonthlyRelations = relations(consumablesMonthly, ({one}) => ({
 	consumable: one(consumables, {
@@ -30,18 +30,16 @@ export const consumablesWithSpaceRelations = relations(consumablesWithSpace, ({o
 export const consumableSpacesRelations = relations(consumableSpaces, ({many}) => ({
 	consumablesWithSpaces: many(consumablesWithSpace),
 	contractAlerts: many(contractAlerts),
-	contractsWithSpaces: many(contractsWithSpace),
-	suppliersWithSpaces: many(suppliersWithSpace),
 }));
 
 export const contractAlertsRelations = relations(contractAlerts, ({one}) => ({
-	contract: one(contracts, {
-		fields: [contractAlerts.contractId],
-		references: [contracts.id]
-	}),
 	consumableSpace: one(consumableSpaces, {
 		fields: [contractAlerts.spaceId],
 		references: [consumableSpaces.id]
+	}),
+	contract: one(contracts, {
+		fields: [contractAlerts.contractId],
+		references: [contracts.id]
 	}),
 }));
 
@@ -51,10 +49,6 @@ export const contractsRelations = relations(contracts, ({many}) => ({
 }));
 
 export const contractsWithSpaceRelations = relations(contractsWithSpace, ({one}) => ({
-	consumableSpace: one(consumableSpaces, {
-		fields: [contractsWithSpace.spaceId],
-		references: [consumableSpaces.id]
-	}),
 	contract: one(contracts, {
 		fields: [contractsWithSpace.contractId],
 		references: [contracts.id]
@@ -99,11 +93,19 @@ export const maintenanceRequestsRelations = relations(maintenanceRequests, ({one
 		fields: [maintenanceRequests.createdBy],
 		references: [users.id]
 	}),
+	maintenanceSpace: one(maintenanceSpaces, {
+		fields: [maintenanceRequests.spaceId],
+		references: [maintenanceSpaces.id]
+	}),
 }));
 
 export const teamsRelations = relations(teams, ({many}) => ({
 	maintenanceRequests: many(maintenanceRequests),
 	schedules: many(schedules),
+}));
+
+export const maintenanceSpacesRelations = relations(maintenanceSpaces, ({many}) => ({
+	maintenanceRequests: many(maintenanceRequests),
 }));
 
 export const roomReservationsRelations = relations(roomReservations, ({one}) => ({
@@ -129,8 +131,12 @@ export const schedulesRelations = relations(schedules, ({one}) => ({
 }));
 
 export const suppliersWithSpaceRelations = relations(suppliersWithSpace, ({one}) => ({
-	consumableSpace: one(consumableSpaces, {
+	supplierSpace: one(supplierSpaces, {
 		fields: [suppliersWithSpace.spaceId],
-		references: [consumableSpaces.id]
+		references: [supplierSpaces.id]
 	}),
+}));
+
+export const supplierSpacesRelations = relations(supplierSpaces, ({many}) => ({
+	suppliersWithSpaces: many(suppliersWithSpace),
 }));

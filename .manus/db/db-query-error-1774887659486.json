@@ -1,0 +1,8 @@
+{
+  "query": "CREATE TABLE `maintenance_spaces` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`name` varchar(255) NOT NULL,\n\t`description` text,\n\t`createdAt` timestamp NOT NULL DEFAULT 'CURRENT_TIMESTAMP',\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `maintenance_spaces_id` PRIMARY KEY(`id`)\n);\n\nALTER TABLE `maintenance_requests` ADD `spaceId` int;\nALTER TABLE `maintenance_requests` ADD CONSTRAINT `maintenance_requests_spaceId_maintenance_spaces_id_fk` FOREIGN KEY (`spaceId`) REFERENCES `maintenance_spaces`(`id`) ON DELETE CASCADE;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute CREATE TABLE `maintenance_spaces` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`name` varchar(255) NOT NULL,\n\t`description` text,\n\t`createdAt` timestamp NOT NULL DEFAULT 'CURRENT_TIMESTAMP',\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `maintenance_spaces_id` PRIMARY KEY(`id`)\n);\n\nALTER TABLE `maintenance_requests` ADD `spaceId` int;\nALTER TABLE `maintenance_requests` ADD CONSTRAINT `maintenance_requests_spaceId_maintenance_spaces_id_fk` FOREIGN KEY (`spaceId`) REFERENCES `maintenance_spaces`(`id`) ON DELETE CASCADE;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1067 (42000) at line 1: Invalid default value for 'createdAt'"
+  ]
+}

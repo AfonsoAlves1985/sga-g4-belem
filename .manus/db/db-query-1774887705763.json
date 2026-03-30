@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `maintenance_requests` ADD CONSTRAINT `maintenance_requests_spaceId_maintenance_spaces_id_fk` FOREIGN KEY (`spaceId`) REFERENCES `maintenance_spaces`(`id`) ON DELETE CASCADE;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute ALTER TABLE `maintenance_requests` ADD CONSTRAINT `maintenance_requests_spaceId_maintenance_spaces_id_fk` FOREIGN KEY (`spaceId`) REFERENCES `maintenance_spaces`(`id`) ON DELETE CASCADE;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1538
+}

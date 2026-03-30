@@ -1,4 +1,4 @@
-import { mysqlTable, mysqlSchema, AnyMySqlColumn, int, date, mysqlEnum, timestamp, varchar, text, foreignKey, datetime, decimal, json, index } from "drizzle-orm/mysql-core"
+import { mysqlTable, mysqlSchema, AnyMySqlColumn, int, date, mysqlEnum, timestamp, varchar, text, foreignKey, datetime, decimal, index, json } from "drizzle-orm/mysql-core"
 import { sql } from "drizzle-orm"
 
 export const consumableMonthlyMovements = mysqlTable("consumable_monthly_movements", {
@@ -160,10 +160,13 @@ export const contracts = mysqlTable("contracts", {
 
 export const contractsWithSpace = mysqlTable("contracts_with_space", {
 	id: int().autoincrement().notNull(),
-	spaceId: int().notNull().references(() => consumableSpaces.id).references(() => contractSpaces.id),
+	spaceId: int().notNull().references(() => contractSpaces.id),
 	contractId: int().notNull().references(() => contracts.id),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
-});
+},
+(table) => [
+	index("fk_1").on(table.spaceId),
+]);
 
 export const inventory = mysqlTable("inventory", {
 	id: int().autoincrement().notNull(),
@@ -199,6 +202,15 @@ export const maintenanceRequests = mysqlTable("maintenance_requests", {
 	createdBy: int().notNull().references(() => users.id),
 	completedAt: datetime({ mode: 'string'}),
 	notes: text(),
+	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
+	spaceId: int().default(1).notNull().references(() => maintenanceSpaces.id, { onDelete: "cascade" } ),
+});
+
+export const maintenanceSpaces = mysqlTable("maintenance_spaces", {
+	id: int().autoincrement().notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	description: text(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
 });
@@ -257,7 +269,7 @@ export const suppliers = mysqlTable("suppliers", {
 
 export const suppliersWithSpace = mysqlTable("suppliers_with_space", {
 	id: int().autoincrement().notNull(),
-	spaceId: int().notNull().references(() => consumableSpaces.id),
+	spaceId: int().notNull().references(() => supplierSpaces.id, { onDelete: "cascade" } ),
 	companyName: varchar({ length: 255 }).notNull(),
 	serviceTypes: json().notNull(),
 	contact: varchar({ length: 255 }).notNull(),
@@ -266,7 +278,10 @@ export const suppliersWithSpace = mysqlTable("suppliers_with_space", {
 	notes: text(),
 	createdAt: timestamp({ mode: 'string' }).default('CURRENT_TIMESTAMP').notNull(),
 	updatedAt: timestamp({ mode: 'string' }).defaultNow().onUpdateNow().notNull(),
-});
+},
+(table) => [
+	index("suppliers_with_space_spaceId_consumable_spaces_id_fk").on(table.spaceId),
+]);
 
 export const teams = mysqlTable("teams", {
 	id: int().autoincrement().notNull(),

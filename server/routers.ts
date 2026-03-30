@@ -689,6 +689,40 @@ export const appRouter = router({
       }),
   }),
 
+  // ============ MAINTENANCE SPACES ============
+  maintenanceSpaces: router({
+    list: protectedProcedure
+      .query(async () => {
+        return db.listMaintenanceSpaces();
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createMaintenanceSpace(input);
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updateMaintenanceSpace(id, data);
+      }),
+
+    delete: protectedProcedure
+      .input(z.number())
+      .mutation(async ({ input }) => {
+        return db.deleteMaintenanceSpace(input);
+      }),
+  }),
+
   // ============ CONSUMABLES WITH SPACE ============
   consumablesWithSpace: router({
     list: protectedProcedure

@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO `maintenance_spaces` (`name`, `description`) VALUES ('Febracis', 'Unidade padrão para manutenção');\n\nALTER TABLE `maintenance_requests` ADD `spaceId` int NOT NULL DEFAULT 1;\n\nALTER TABLE `maintenance_requests` ADD CONSTRAINT `maintenance_requests_spaceId_maintenance_spaces_id_fk` FOREIGN KEY (`spaceId`) REFERENCES `maintenance_spaces`(`id`) ON DELETE CASCADE;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute INSERT INTO `maintenance_spaces` (`name`, `description`) VALUES ('Febracis', 'Unidade padrão para manutenção');\n\nALTER TABLE `maintenance_requests` ADD `spaceId` int NOT NULL DEFAULT 1;\n\nALTER TABLE `maintenance_requests` ADD CONSTRAINT `maintenance_requests_spaceId_maintenance_spaces_id_fk` FOREIGN KEY (`spaceId`) REFERENCES `maintenance_spaces`(`id`) ON DELETE CASCADE;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1060 (42S21) at line 3: Duplicate column name 'spaceId'"
+  ]
+}
