@@ -34,6 +34,7 @@ export default function Maintenance() {
   const { data: requests = [], isLoading, refetch } = trpc.maintenance.list.useQuery({
     status,
     priority,
+    spaceId: selectedSpace || undefined,
   });
 
   // Mutations - Spaces

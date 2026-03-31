@@ -300,7 +300,7 @@ export async function deleteRoomReservation(id: number) {
 
 // ============ MANUTENÇÃO ============
 
-export async function listMaintenanceRequests(filters?: { status?: string; priority?: string; assignedTo?: number }) {
+export async function listMaintenanceRequests(filters?: { status?: string; priority?: string; assignedTo?: number; spaceId?: number }) {
   const db = await getDb();
   if (!db) return [];
 
@@ -309,6 +309,7 @@ export async function listMaintenanceRequests(filters?: { status?: string; prior
   if (filters?.status) conditions.push(eq(maintenanceRequests.status, filters.status as any));
   if (filters?.priority) conditions.push(eq(maintenanceRequests.priority, filters.priority as any));
   if (filters?.assignedTo) conditions.push(eq(maintenanceRequests.assignedTo, filters.assignedTo));
+  if (filters?.spaceId) conditions.push(eq(maintenanceRequests.spaceId, filters.spaceId));
 
   let query = db.select().from(maintenanceRequests);
   if (conditions.length > 0) {

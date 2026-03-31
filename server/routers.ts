@@ -252,6 +252,7 @@ export const appRouter = router({
         status: z.string().optional(),
         priority: z.string().optional(),
         assignedTo: z.number().optional(),
+        spaceId: z.number().optional(),
       }).optional())
       .query(async ({ input }) => {
         return db.listMaintenanceRequests(input);
@@ -269,6 +270,7 @@ export const appRouter = router({
         description: z.string().optional(),
         priority: z.enum(["baixa", "media", "alta", "urgente"]).default("media"),
         type: z.enum(["preventiva", "correctiva"]),
+        spaceId: z.number(),
       }))
       .mutation(async ({ input, ctx }) => {
         return db.createMaintenanceRequest({
