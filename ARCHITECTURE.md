@@ -1,4 +1,4 @@
-# Arquitetura - SGA G4 Belém
+# Arquitetura - SG Grupo FRZ
 
 ## Visão Geral
 
