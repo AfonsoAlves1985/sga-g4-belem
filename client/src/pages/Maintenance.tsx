@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Plus, AlertTriangle, CheckCircle, Clock, Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { MaintenanceSpaceManager } from "@/components/MaintenanceSpaceManager";
+import { MaintenanceInlineEdit } from "@/components/MaintenanceInlineEdit";
 
 export default function Maintenance() {
   const [selectedSpace, setSelectedSpace] = useState<number | null>(null);
@@ -368,25 +369,55 @@ export default function Maintenance() {
                     <TableBody>
                       {requests.map((request: any, idx: number) => (
                         <TableRow key={`maintenance-${request.id}-${idx}`} className="border-slate-700 hover:bg-slate-700/30">
-                          <TableCell className="text-white">{request.title}</TableCell>
-                          <TableCell>
-                            <span className="px-2 py-1 rounded text-xs bg-blue-900/30 text-blue-400">
-                              {request.type === "preventiva" ? "Preventiva" : "Corretiva"}
-                            </span>
+                          <TableCell className="text-white">
+                            <MaintenanceInlineEdit
+                              value={request.title}
+                              field="title"
+                              onSave={(newValue) => updateMutation.mutate({ id: request.id, title: newValue })}
+                              isLoading={updateMutation.isPending}
+                            >
+                              <span className="cursor-pointer hover:text-orange-400">{request.title}</span>
+                            </MaintenanceInlineEdit>
                           </TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 rounded text-xs ${getPriorityColor(request.priority)}`}>
-                              {request.priority.charAt(0).toUpperCase() + request.priority.slice(1)}
-                            </span>
+                            <MaintenanceInlineEdit
+                              value={request.type}
+                              field="type"
+                              onSave={(newValue) => updateMutation.mutate({ id: request.id, type: newValue as any })}
+                              isLoading={updateMutation.isPending}
+                            >
+                              <span className="px-2 py-1 rounded text-xs bg-blue-900/30 text-blue-400 cursor-pointer hover:bg-blue-900/50">
+                                {request.type === "preventiva" ? "Preventiva" : "Corretiva"}
+                              </span>
+                            </MaintenanceInlineEdit>
                           </TableCell>
                           <TableCell>
-                            <span className="flex items-center gap-2 text-gray-300">
-                              {getStatusIcon(request.status)}
-                              {request.status === "aberto" && "Aberto"}
-                              {request.status === "em_progresso" && "Em Progresso"}
-                              {request.status === "concluido" && "Concluído"}
-                              {request.status === "cancelado" && "Cancelado"}
-                            </span>
+                            <MaintenanceInlineEdit
+                              value={request.priority}
+                              field="priority"
+                              onSave={(newValue) => updateMutation.mutate({ id: request.id, priority: newValue as any })}
+                              isLoading={updateMutation.isPending}
+                            >
+                              <span className={`px-2 py-1 rounded text-xs cursor-pointer hover:opacity-80 ${getPriorityColor(request.priority)}`}>
+                                {request.priority.charAt(0).toUpperCase() + request.priority.slice(1)}
+                              </span>
+                            </MaintenanceInlineEdit>
+                          </TableCell>
+                          <TableCell>
+                            <MaintenanceInlineEdit
+                              value={request.status}
+                              field="status"
+                              onSave={(newValue) => updateMutation.mutate({ id: request.id, status: newValue as any })}
+                              isLoading={updateMutation.isPending}
+                            >
+                              <span className="flex items-center gap-2 text-gray-300 cursor-pointer hover:opacity-80">
+                                {getStatusIcon(request.status)}
+                                {request.status === "aberto" && "Aberto"}
+                                {request.status === "em_progresso" && "Em Progresso"}
+                                {request.status === "concluido" && "Concluído"}
+                                {request.status === "cancelado" && "Cancelado"}
+                              </span>
+                            </MaintenanceInlineEdit>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
