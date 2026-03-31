@@ -251,7 +251,18 @@ export async function createRoom(data: InsertRoom) {
 export async function updateRoom(id: number, data: Partial<InsertRoom>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return db.update(rooms).set(data).where(eq(rooms.id, id));
+  
+  // Filter out undefined values
+  const updateData = Object.fromEntries(
+    Object.entries(data).filter(([_, v]) => v !== undefined)
+  );
+  
+  // Check if there's anything to update
+  if (Object.keys(updateData).length === 0) {
+    throw new Error("No values to set");
+  }
+  
+  return db.update(rooms).set(updateData as any).where(eq(rooms.id, id));
 }
 
 export async function deleteRoom(id: number) {

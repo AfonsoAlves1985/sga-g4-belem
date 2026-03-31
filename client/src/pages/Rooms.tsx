@@ -86,8 +86,15 @@ export default function Rooms() {
   };
 
   const handleReleaseRoom = (roomId: number) => {
+    const room = rooms.find((r: any) => r.id === roomId);
+    if (!room) return;
+    
     updateMutation.mutate({
       id: roomId,
+      name: room.name,
+      capacity: room.capacity,
+      location: room.location,
+      type: room.type,
       responsibleUserId: undefined,
       responsibleUserName: "",
       startDate: undefined,
@@ -126,14 +133,34 @@ export default function Rooms() {
 
   const handleInlineSubmit = () => {
     if (inlineEditingId && inlineEditField) {
+      const room = rooms.find((r: any) => r.id === inlineEditingId);
+      if (!room) return;
+      
       const updateData: any = {
         id: inlineEditingId,
+        name: room.name,
+        capacity: room.capacity,
+        location: room.location,
+        type: room.type,
+        status: room.status,
+        responsibleUserId: room.responsibleUserId,
+        responsibleUserName: room.responsibleUserName,
+        startDate: room.startDate,
+        endDate: room.endDate,
+        startTime: room.startTime,
+        endTime: room.endTime,
+        isReleased: room.isReleased,
       };
+      
+      // Update only the edited field
       if (inlineEditField === "capacity") {
         updateData[inlineEditField] = parseInt(inlineEditValue) || 0;
+      } else if (inlineEditField === "startDate" || inlineEditField === "endDate") {
+        updateData[inlineEditField] = inlineEditValue ? new Date(inlineEditValue) : undefined;
       } else {
-        updateData[inlineEditField] = inlineEditValue;
+        updateData[inlineEditField] = inlineEditValue || undefined;
       }
+      
       updateMutation.mutate(updateData);
     }
   };
