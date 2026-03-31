@@ -267,7 +267,6 @@ export default function Rooms() {
                   <SelectValue placeholder="Selecione um status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
                   <SelectItem value="disponivel">Disponível</SelectItem>
                   <SelectItem value="ocupada">Ocupada</SelectItem>
                   <SelectItem value="manutencao">Manutenção</SelectItem>
