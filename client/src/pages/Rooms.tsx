@@ -26,7 +26,6 @@ export default function Rooms() {
     location: "",
     type: "sala" as "sala" | "auditorio" | "cozinha" | "outro",
     status: "disponivel" as "disponivel" | "ocupada" | "manutencao",
-    responsibleUserId: undefined as number | undefined,
     responsibleUserName: "",
     startDate: undefined as Date | undefined,
     endDate: undefined as Date | undefined,
@@ -45,7 +44,7 @@ export default function Rooms() {
   const createMutation = trpc.rooms.create.useMutation({
     onSuccess: () => {
       toast.success("Sala criada com sucesso!");
-      setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserId: undefined, responsibleUserName: "", startDate: undefined, endDate: undefined, startTime: "", endTime: "", isReleased: 0 });
+      setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserName: "", startDate: undefined, endDate: undefined, startTime: "", endTime: "", isReleased: 0 });
       setIsDialogOpen(false);
       refetch();
     },
@@ -58,7 +57,7 @@ export default function Rooms() {
     onSuccess: () => {
       toast.success("Sala actualizada com sucesso!");
       setEditingRoom(null);
-      setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserId: undefined, responsibleUserName: "", startDate: undefined, endDate: undefined, startTime: "", endTime: "", isReleased: 0 });
+      setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserName: "", startDate: undefined, endDate: undefined, startTime: "", endTime: "", isReleased: 0 });
       setIsDialogOpen(false);
       setInlineEditingId(null);
       setInlineEditField(null);
@@ -81,7 +80,7 @@ export default function Rooms() {
 
   const handleCreateSample = () => {
     setEditingRoom(null);
-    setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserId: undefined, responsibleUserName: "", startDate: undefined, endDate: undefined, startTime: "", endTime: "", isReleased: 0 });
+    setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserName: "", startDate: undefined, endDate: undefined, startTime: "", endTime: "", isReleased: 0 });
     setIsDialogOpen(true);
   };
 
@@ -95,7 +94,7 @@ export default function Rooms() {
       capacity: room.capacity,
       location: room.location,
       type: room.type,
-      responsibleUserId: undefined,
+
       responsibleUserName: "",
       startDate: undefined,
       endDate: undefined,
@@ -114,7 +113,7 @@ export default function Rooms() {
       location: room.location,
       type: room.type,
       status: room.status,
-      responsibleUserId: room.responsibleUserId,
+
       responsibleUserName: room.responsibleUserName || "",
       startDate: room.startDate ? new Date(room.startDate) : undefined,
       endDate: room.endDate ? new Date(room.endDate) : undefined,
@@ -143,7 +142,7 @@ export default function Rooms() {
         location: room.location,
         type: room.type,
         status: room.status,
-        responsibleUserId: room.responsibleUserId,
+  
         responsibleUserName: room.responsibleUserName,
         startDate: room.startDate,
         endDate: room.endDate,
@@ -447,18 +446,6 @@ export default function Rooms() {
             </div>
 
             <div>
-              <Label htmlFor="responsibleUserId" className="text-gray-300">ID do Responsável</Label>
-              <Input
-                id="responsibleUserId"
-                type="number"
-                value={formData.responsibleUserId || ""}
-                onChange={(e) => setFormData({ ...formData, responsibleUserId: e.target.value ? parseInt(e.target.value) : undefined })}
-                placeholder="ID do utilizador responsável"
-                className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
-              />
-            </div>
-
-            <div>
               <Label htmlFor="responsibleUserName" className="text-gray-300">Nome do Solicitante</Label>
               <Input
                 id="responsibleUserName"
@@ -607,12 +594,12 @@ export default function Rooms() {
               </Select>
             )}
 
-            {inlineEditField === "responsibleUserId" && (
+            {inlineEditField === "responsibleUserName" && (
               <Input
-                type="number"
+                type="text"
                 value={inlineEditValue}
                 onChange={(e) => setInlineEditValue(e.target.value)}
-                placeholder="ID do utilizador"
+                placeholder="Nome completo do responsavel"
                 className="bg-slate-700 border-slate-600 text-white"
               />
             )}
@@ -721,7 +708,7 @@ export default function Rooms() {
                     <div className="space-y-3">
                       <div>
                         <p className="text-white font-semibold text-sm">{room.name}</p>
-                        <p className="text-gray-400 text-xs">Responsável: {room.responsibleUserId ? `Usuário ${room.responsibleUserId}` : "—"}</p>
+                        <p className="text-gray-400 text-xs">Responsável: {room.responsibleUserName || "—"}</p>
                       </div>
                       
                       <div className="space-y-1">

@@ -233,7 +233,6 @@ export const rooms = mysqlTable("rooms", {
 	location: varchar({ length: 255 }).notNull(),
 	type: mysqlEnum(['sala','auditorio','cozinha','outro']).notNull(),
 	status: mysqlEnum(['disponivel','ocupada','manutencao']).default('disponivel').notNull(),
-	responsibleUserId: int().references(() => users.id),
 	responsibleUserName: varchar({ length: 255 }),
 	startDate: datetime({ mode: 'date' }),
 	endDate: datetime({ mode: 'date' }),

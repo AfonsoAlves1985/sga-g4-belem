@@ -304,7 +304,7 @@ export async function getRoomUsageStats(roomId: number) {
   return {
     roomId,
     name: roomData.name,
-    responsibleUserId: roomData.responsibleUserId,
+    responsibleUserName: roomData.responsibleUserName,
     startDate: roomData.startDate,
     endDate: roomData.endDate,
     startTime: roomData.startTime,
