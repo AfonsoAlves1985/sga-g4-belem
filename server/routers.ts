@@ -171,6 +171,11 @@ export const appRouter = router({
         capacity: z.number(),
         location: z.string(),
         type: z.enum(["sala", "auditorio", "cozinha", "outro"]),
+        responsibleUserId: z.number().optional(),
+        startDate: z.date().optional(),
+        endDate: z.date().optional(),
+        startTime: z.string().optional(),
+        endTime: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         return db.createRoom(input);
@@ -184,6 +189,11 @@ export const appRouter = router({
         location: z.string().optional(),
         type: z.enum(["sala", "auditorio", "cozinha", "outro"]).optional(),
         status: z.enum(["disponivel", "ocupada", "manutencao"]).optional(),
+        responsibleUserId: z.number().optional(),
+        startDate: z.date().optional(),
+        endDate: z.date().optional(),
+        startTime: z.string().optional(),
+        endTime: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
@@ -194,6 +204,18 @@ export const appRouter = router({
       .input(z.number())
       .mutation(async ({ input }) => {
         return db.deleteRoom(input);
+      }),
+
+    getUsageStats: protectedProcedure
+      .input(z.number().optional())
+      .query(async ({ input }) => {
+        if (!input) return db.getAllRoomsUsageStats();
+        return db.getRoomUsageStats(input);
+      }),
+
+    getAllUsageStats: protectedProcedure
+      .query(async () => {
+        return db.getAllRoomsUsageStats();
       }),
   }),
 

@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `rooms` ADD `responsibleUserId` int NOT NULL DEFAULT 1;\nALTER TABLE `rooms` ADD `startDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;\nALTER TABLE `rooms` ADD `endDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;\nALTER TABLE `rooms` ADD `startTime` varchar(5) NOT NULL DEFAULT '09:00';\nALTER TABLE `rooms` ADD `endTime` varchar(5) NOT NULL DEFAULT '17:00';\nALTER TABLE `rooms` ADD `updatedAt` timestamp DEFAULT (now()) NOT NULL ON UPDATE CURRENT_TIMESTAMP;\nALTER TABLE `rooms` ADD CONSTRAINT `rooms_responsibleUserId_users_id_fk` FOREIGN KEY (`responsibleUserId`) REFERENCES `users`(`id`) ON DELETE no action ON UPDATE no action;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute ALTER TABLE `rooms` ADD `responsibleUserId` int NOT NULL DEFAULT 1;\nALTER TABLE `rooms` ADD `startDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;\nALTER TABLE `rooms` ADD `endDate` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP;\nALTER TABLE `rooms` ADD `startTime` varchar(5) NOT NULL DEFAULT '09:00';\nALTER TABLE `rooms` ADD `endTime` varchar(5) NOT NULL DEFAULT '17:00';\nALTER TABLE `rooms` ADD `updatedAt` timestamp DEFAULT (now()) NOT NULL ON UPDATE CURRENT_TIMESTAMP;\nALTER TABLE `rooms` ADD CONSTRAINT `rooms_responsibleUserId_users_id_fk` FOREIGN KEY (`responsibleUserId`) REFERENCES `users`(`id`) ON DELETE no action ON UPDATE no action;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 7896
+}

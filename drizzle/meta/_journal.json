@@ -85,6 +85,20 @@
       "when": 1774893271273,
       "tag": "0011_stiff_starjammers",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1774962290095,
+      "tag": "0012_freezing_karma",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1774964364128,
+      "tag": "0013_military_ink",
+      "breakpoints": true
     }
   ]
 }

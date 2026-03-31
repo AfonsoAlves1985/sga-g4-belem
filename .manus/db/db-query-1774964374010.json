@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `rooms` MODIFY COLUMN `responsibleUserId` int;\nALTER TABLE `rooms` MODIFY COLUMN `startDate` datetime;\nALTER TABLE `rooms` MODIFY COLUMN `endDate` datetime;\nALTER TABLE `rooms` MODIFY COLUMN `startTime` varchar(5);\nALTER TABLE `rooms` MODIFY COLUMN `endTime` varchar(5);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user r9CVoJ25nh9Ssfd.root --database Ztp8T7Vpr2FQpGULvKFpsw --execute ALTER TABLE `rooms` MODIFY COLUMN `responsibleUserId` int;\nALTER TABLE `rooms` MODIFY COLUMN `startDate` datetime;\nALTER TABLE `rooms` MODIFY COLUMN `endDate` datetime;\nALTER TABLE `rooms` MODIFY COLUMN `startTime` varchar(5);\nALTER TABLE `rooms` MODIFY COLUMN `endTime` varchar(5);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1938
+}

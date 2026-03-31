@@ -445,3 +445,16 @@
 - [ ] Implementar CRUD de unidades em Contratos
 - [ ] Adicionar testes para CRUD de unidades
 - [ ] Validar funcionalidade completa
+
+
+## Fase 26: Expansão do Módulo de Salas
+- [ ] Atualizar schema de Salas com campos: usuário responsável, data início, data fim, hora início, hora fim
+- [ ] Gerar e aplicar migration SQL para novos campos
+- [ ] Criar procedures tRPC para listar, criar, atualizar salas com novos campos
+- [ ] Implementar componentes EditableCell para todos os campos de Salas
+- [ ] Atualizar página de Salas com tabela editável inline
+- [ ] Criar dashboard com tempo de uso (data início até entrega)
+- [ ] Implementar alertas de uso e entrega de salas no dashboard
+- [ ] Testar edição inline de todos os campos
+- [ ] Testar cálculo de tempo de uso
+- [ ] Testar alertas de uso e entrega

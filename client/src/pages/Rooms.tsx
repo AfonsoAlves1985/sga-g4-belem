@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Building2, Users, Edit2, Trash2 } from "lucide-react";
+import { Plus, Building2, Users, Edit2, Trash2, Calendar, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Rooms() {
@@ -24,6 +24,11 @@ export default function Rooms() {
     location: "",
     type: "sala" as "sala" | "auditorio" | "cozinha" | "outro",
     status: "disponivel" as "disponivel" | "ocupada" | "manutencao",
+    responsibleUserId: undefined as number | undefined,
+    startDate: undefined as Date | undefined,
+    endDate: undefined as Date | undefined,
+    startTime: "",
+    endTime: "",
   });
 
   const { data: rooms = [], isLoading, refetch } = trpc.rooms.list.useQuery({
@@ -36,7 +41,7 @@ export default function Rooms() {
   const createMutation = trpc.rooms.create.useMutation({
     onSuccess: () => {
       toast.success("Sala criada com sucesso!");
-      setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel" });
+      setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserId: undefined, startDate: undefined, endDate: undefined, startTime: "", endTime: "" });
       setIsDialogOpen(false);
       refetch();
     },
@@ -49,7 +54,7 @@ export default function Rooms() {
     onSuccess: () => {
       toast.success("Sala actualizada com sucesso!");
       setEditingRoom(null);
-      setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel" });
+      setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserId: undefined, startDate: undefined, endDate: undefined, startTime: "", endTime: "" });
       setIsDialogOpen(false);
       setInlineEditingId(null);
       setInlineEditField(null);
@@ -72,7 +77,7 @@ export default function Rooms() {
 
   const handleCreateSample = () => {
     setEditingRoom(null);
-    setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel" });
+    setFormData({ name: "", capacity: 0, location: "", type: "sala", status: "disponivel", responsibleUserId: undefined, startDate: undefined, endDate: undefined, startTime: "", endTime: "" });
     setIsDialogOpen(true);
   };
 
@@ -84,6 +89,11 @@ export default function Rooms() {
       location: room.location,
       type: room.type,
       status: room.status,
+      responsibleUserId: room.responsibleUserId,
+      startDate: room.startDate ? new Date(room.startDate) : undefined,
+      endDate: room.endDate ? new Date(room.endDate) : undefined,
+      startTime: room.startTime || "",
+      endTime: room.endTime || "",
     });
     setIsDialogOpen(true);
   };
@@ -231,6 +241,8 @@ export default function Rooms() {
                     <TableHead className="text-gray-300 cursor-pointer hover:text-orange-400">Localização</TableHead>
                     <TableHead className="text-gray-300 cursor-pointer hover:text-orange-400">Tipo</TableHead>
                     <TableHead className="text-gray-300 cursor-pointer hover:text-orange-400">Status</TableHead>
+                    <TableHead className="text-gray-300">Responsável</TableHead>
+                    <TableHead className="text-gray-300">Datas</TableHead>
                     <TableHead className="text-gray-300">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -264,6 +276,19 @@ export default function Rooms() {
                         >
                           {room.status}
                         </span>
+                      </TableCell>
+                      <TableCell className="text-gray-300 text-sm">
+                        {room.responsibleUserId ? `Usuário ${room.responsibleUserId}` : "—"}
+                      </TableCell>
+                      <TableCell className="text-gray-300 text-sm">
+                        {room.startDate && room.endDate ? (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(room.startDate).toLocaleDateString("pt-PT")}
+                          </div>
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -353,6 +378,64 @@ export default function Rooms() {
                 placeholder="Ex: Piso 2"
                 className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="responsibleUserId" className="text-gray-300">ID do Responsável</Label>
+              <Input
+                id="responsibleUserId"
+                type="number"
+                value={formData.responsibleUserId || ""}
+                onChange={(e) => setFormData({ ...formData, responsibleUserId: e.target.value ? parseInt(e.target.value) : undefined })}
+                placeholder="ID do utilizador responsável"
+                className="mt-1 bg-slate-700 border-slate-600 text-white placeholder-gray-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="startDate" className="text-gray-300">Data de Início</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={formData.startDate ? formData.startDate.toISOString().split('T')[0] : ""}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value ? new Date(e.target.value) : undefined })}
+                  className="mt-1 bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+              <div>
+                <Label htmlFor="endDate" className="text-gray-300">Data de Fim</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate ? formData.endDate.toISOString().split('T')[0] : ""}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value ? new Date(e.target.value) : undefined })}
+                  className="mt-1 bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="startTime" className="text-gray-300">Hora de Início</Label>
+                <Input
+                  id="startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                  className="mt-1 bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+              <div>
+                <Label htmlFor="endTime" className="text-gray-300">Hora de Fim</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                  className="mt-1 bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
             </div>
 
             {editingRoom && (
@@ -446,6 +529,52 @@ export default function Rooms() {
               </Select>
             )}
 
+            {inlineEditField === "responsibleUserId" && (
+              <Input
+                type="number"
+                value={inlineEditValue}
+                onChange={(e) => setInlineEditValue(e.target.value)}
+                placeholder="ID do utilizador"
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            )}
+
+            {inlineEditField === "startDate" && (
+              <Input
+                type="date"
+                value={inlineEditValue}
+                onChange={(e) => setInlineEditValue(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            )}
+
+            {inlineEditField === "endDate" && (
+              <Input
+                type="date"
+                value={inlineEditValue}
+                onChange={(e) => setInlineEditValue(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            )}
+
+            {inlineEditField === "startTime" && (
+              <Input
+                type="time"
+                value={inlineEditValue}
+                onChange={(e) => setInlineEditValue(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            )}
+
+            {inlineEditField === "endTime" && (
+              <Input
+                type="time"
+                value={inlineEditValue}
+                onChange={(e) => setInlineEditValue(e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            )}
+
             <div className="flex gap-3 pt-4">
               <Button
                 onClick={handleInlineSubmit}
@@ -465,6 +594,102 @@ export default function Rooms() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dashboard de Tempo de Uso */}
+      <Card className="bg-slate-800/50 border-orange-700/30">
+        <CardHeader>
+          <CardTitle className="text-white">Tempo de Uso das Salas</CardTitle>
+          <CardDescription className="text-gray-400">Acompanhe o tempo decorrido e alertas de entrega</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {rooms.map((room: any) => {
+              if (!room.startDate || !room.endDate) return null;
+              
+              const startDate = new Date(room.startDate);
+              const endDate = new Date(room.endDate);
+              const now = new Date();
+              
+              const totalDuration = endDate.getTime() - startDate.getTime();
+              const elapsedTime = Math.min(now.getTime() - startDate.getTime(), totalDuration);
+              const remainingTime = Math.max(endDate.getTime() - now.getTime(), 0);
+              const usagePercentage = totalDuration > 0 ? (elapsedTime / totalDuration) * 100 : 0;
+              
+              let alertStatus = "normal";
+              let alertColor = "bg-green-900/30 border-green-700/30";
+              let alertText = "Normal";
+              
+              if (remainingTime <= 0) {
+                alertStatus = "entregue";
+                alertColor = "bg-blue-900/30 border-blue-700/30";
+                alertText = "Entregue";
+              } else if (remainingTime <= 24 * 60 * 60 * 1000) {
+                alertStatus = "proximo_vencimento";
+                alertColor = "bg-red-900/30 border-red-700/30";
+                alertText = "Próximo Vencimento";
+              } else if (remainingTime <= 3 * 24 * 60 * 60 * 1000) {
+                alertStatus = "aviso";
+                alertColor = "bg-yellow-900/30 border-yellow-700/30";
+                alertText = "Aviso";
+              }
+              
+              return (
+                <Card key={room.id} className={`${alertColor} border`}>
+                  <CardContent className="pt-4">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-white font-semibold text-sm">{room.name}</p>
+                        <p className="text-gray-400 text-xs">Responsável: {room.responsibleUserId ? `Usuário ${room.responsibleUserId}` : "—"}</p>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-400">Progresso de Uso</span>
+                          <span className="text-gray-300">{Math.round(usagePercentage)}%</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-2">
+                          <div 
+                            className="bg-orange-600 h-2 rounded-full transition-all"
+                            style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-gray-400">Início</p>
+                          <p className="text-gray-300">{startDate.toLocaleDateString("pt-PT")}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400">Fim</p>
+                          <p className="text-gray-300">{endDate.toLocaleDateString("pt-PT")}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-slate-700">
+                        <p className="text-xs font-semibold text-white mb-1">Status: <span className="text-orange-400">{alertText}</span></p>
+                        <p className="text-xs text-gray-400">
+                          {remainingTime > 0 
+                            ? `Faltam ${Math.ceil(remainingTime / (1000 * 60 * 60 * 24))} dias`
+                            : "Prazo expirado"
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          
+          {rooms.filter((r: any) => r.startDate && r.endDate).length === 0 && (
+            <div className="text-center py-8">
+              <Calendar className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-400">Nenhuma sala com datas de uso definidas</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

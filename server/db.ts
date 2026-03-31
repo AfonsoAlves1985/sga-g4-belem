@@ -260,6 +260,66 @@ export async function deleteRoom(id: number) {
   return db.delete(rooms).where(eq(rooms.id, id));
 }
 
+export async function getRoomUsageStats(roomId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const room = await db.select().from(rooms).where(eq(rooms.id, roomId)).limit(1);
+  if (!room[0]) return null;
+  
+  const roomData = room[0] as any;
+  const startDate = new Date(roomData.startDate);
+  const endDate = new Date(roomData.endDate);
+  const now = new Date();
+  
+  // Calcular tempo decorrido
+  const totalDuration = endDate.getTime() - startDate.getTime();
+  const elapsedTime = Math.min(now.getTime() - startDate.getTime(), totalDuration);
+  const remainingTime = Math.max(endDate.getTime() - now.getTime(), 0);
+  
+  // Calcular percentual de uso
+  const usagePercentage = totalDuration > 0 ? (elapsedTime / totalDuration) * 100 : 0;
+  
+  // Determinar status de alerta
+  let alertStatus = "normal";
+  if (remainingTime <= 0) {
+    alertStatus = "entregue";
+  } else if (remainingTime <= 24 * 60 * 60 * 1000) { // Menos de 24 horas
+    alertStatus = "proximo_vencimento";
+  } else if (remainingTime <= 3 * 24 * 60 * 60 * 1000) { // Menos de 3 dias
+    alertStatus = "aviso";
+  }
+  
+  return {
+    roomId,
+    name: roomData.name,
+    responsibleUserId: roomData.responsibleUserId,
+    startDate: roomData.startDate,
+    endDate: roomData.endDate,
+    startTime: roomData.startTime,
+    endTime: roomData.endTime,
+    totalDuration,
+    elapsedTime,
+    remainingTime,
+    usagePercentage: Math.round(usagePercentage),
+    alertStatus,
+    isDelivered: remainingTime <= 0,
+  };
+}
+
+export async function getAllRoomsUsageStats() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const allRooms = await db.select().from(rooms).orderBy(asc(rooms.name));
+  
+  const stats = await Promise.all(
+    (allRooms as any[]).map(room => getRoomUsageStats(room.id))
+  );
+  
+  return stats.filter(stat => stat !== null);
+}
+
 // ============ RESERVAS DE SALAS ============
 
 export async function listRoomReservations(filters?: { roomId?: number; status?: string }) {
