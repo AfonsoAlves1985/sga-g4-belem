@@ -161,6 +161,16 @@ export default function Rooms() {
         updateData[inlineEditField] = inlineEditValue || undefined;
       }
       
+      // Validar datas se ambas estão definidas
+      if (updateData.startDate && updateData.endDate) {
+        if (updateData.endDate < updateData.startDate) {
+          toast.error("A data de término não pode ser anterior à data de início");
+          setInlineEditingId(null);
+          setInlineEditField(null);
+          return;
+        }
+      }
+      
       updateMutation.mutate(updateData);
     }
   };
@@ -169,6 +179,14 @@ export default function Rooms() {
     if (!formData.name || !formData.location || formData.capacity <= 0) {
       toast.error("Preencha todos os campos corretamente");
       return;
+    }
+
+    // Validar datas
+    if (formData.startDate && formData.endDate) {
+      if (formData.endDate < formData.startDate) {
+        toast.error("A data de término não pode ser anterior à data de início");
+        return;
+      }
     }
 
     if (editingRoom) {

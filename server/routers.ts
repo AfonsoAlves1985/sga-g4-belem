@@ -176,7 +176,18 @@ export const appRouter = router({
         endDate: z.date().optional(),
         startTime: z.string().optional(),
         endTime: z.string().optional(),
-      }))
+      }).refine(
+        (data) => {
+          if (data.startDate && data.endDate) {
+            return data.endDate >= data.startDate;
+          }
+          return true;
+        },
+        {
+          message: "Data de termino nao pode ser anterior a data de inicio",
+          path: ["endDate"],
+        }
+      ))
       .mutation(async ({ input }) => {
         return db.createRoom(input);
       }),
@@ -194,7 +205,18 @@ export const appRouter = router({
         endDate: z.date().optional(),
         startTime: z.string().optional(),
         endTime: z.string().optional(),
-      }))
+      }).refine(
+        (data) => {
+          if (data.startDate && data.endDate) {
+            return data.endDate >= data.startDate;
+          }
+          return true;
+        },
+        {
+          message: "Data de termino nao pode ser anterior a data de inicio",
+          path: ["endDate"],
+        }
+      ))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
         return db.updateRoom(id, data);
