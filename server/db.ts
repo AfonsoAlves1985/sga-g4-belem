@@ -217,13 +217,12 @@ export async function deleteTeam(id: number) {
 
 // ============ SALAS ============
 
-export async function listRooms(filters?: { type?: string; status?: string }) {
+export async function listRooms(filters?: { status?: string }) {
   const db = await getDb();
   if (!db) return [];
 
   const conditions = [];
 
-  if (filters?.type) conditions.push(eq(rooms.type, filters.type as any));
   if (filters?.status && filters.status !== "all") conditions.push(eq(rooms.status, filters.status as any));
 
   let query = db.select().from(rooms);

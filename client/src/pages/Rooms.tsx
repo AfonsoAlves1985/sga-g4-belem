@@ -11,7 +11,6 @@ import { Plus, Building2, Users, Edit2, Trash2, Calendar, Clock } from "lucide-r
 import { toast } from "sonner";
 
 export default function Rooms() {
-  const [roomType, setRoomType] = useState("sala");
   const [status, setStatus] = useState("all");
   const [editingRoom, setEditingRoom] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -44,7 +43,6 @@ export default function Rooms() {
   });
 
   const { data: rooms = [], isLoading, refetch } = trpc.rooms.list.useQuery({
-    type: roomType,
     status,
   });
 
@@ -287,39 +285,22 @@ export default function Rooms() {
       <Card className="bg-slate-800/50 border-orange-700/30">
         <CardHeader>
           <CardTitle className="text-white">Filtros</CardTitle>
-          <CardDescription className="text-gray-400">Filtre salas por tipo e status</CardDescription>
+          <CardDescription className="text-gray-400">Filtre salas por status</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-300">Tipo de Sala</label>
-              <Select value={roomType} onValueChange={setRoomType}>
-                <SelectTrigger className="mt-1 bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Selecione um tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sala">Sala</SelectItem>
-                  <SelectItem value="auditorio">Auditório</SelectItem>
-                  <SelectItem value="cozinha">Cozinha</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-300">Status</label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="mt-1 bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Selecione um status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="disponivel">Disponível</SelectItem>
-                  <SelectItem value="ocupada">Ocupada</SelectItem>
-                  <SelectItem value="manutencao">Manutenção</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <CardContent>
+          <div className="max-w-xs">
+            <label className="text-sm font-medium text-gray-300">Status</label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="mt-1 bg-slate-700 border-slate-600 text-white">
+                <SelectValue placeholder="Selecione um status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="disponivel">Disponível</SelectItem>
+                <SelectItem value="ocupada">Ocupada</SelectItem>
+                <SelectItem value="manutencao">Manutenção</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

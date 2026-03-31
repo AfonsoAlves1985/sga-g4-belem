@@ -152,7 +152,6 @@ export const appRouter = router({
   rooms: router({
     list: protectedProcedure
       .input(z.object({
-        type: z.string().optional(),
         status: z.string().optional(),
       }).optional())
       .query(async ({ input }) => {
