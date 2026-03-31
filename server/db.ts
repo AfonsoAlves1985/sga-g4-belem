@@ -224,7 +224,7 @@ export async function listRooms(filters?: { type?: string; status?: string }) {
   const conditions = [];
 
   if (filters?.type) conditions.push(eq(rooms.type, filters.type as any));
-  if (filters?.status) conditions.push(eq(rooms.status, filters.status as any));
+  if (filters?.status && filters.status !== "all") conditions.push(eq(rooms.status, filters.status as any));
 
   let query = db.select().from(rooms);
   if (conditions.length > 0) {

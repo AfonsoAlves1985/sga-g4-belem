@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 export default function Rooms() {
   const [roomType, setRoomType] = useState("sala");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("all");
   const [editingRoom, setEditingRoom] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [inlineEditingId, setInlineEditingId] = useState<number | null>(null);
@@ -267,7 +267,7 @@ export default function Rooms() {
                   <SelectValue placeholder="Selecione um status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="disponivel">Disponível</SelectItem>
                   <SelectItem value="ocupada">Ocupada</SelectItem>
                   <SelectItem value="manutencao">Manutenção</SelectItem>
