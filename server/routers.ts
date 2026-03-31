@@ -148,52 +148,6 @@ export const appRouter = router({
       }),
   }),
 
-  // ============ ESCALA ============
-  schedules: router({
-    list: protectedProcedure
-      .input(z.object({
-        teamId: z.number().optional(),
-        date: z.date().optional(),
-      }).optional())
-      .query(async ({ input }) => {
-        return db.listSchedules(input);
-      }),
-
-    create: protectedProcedure
-      .input(z.object({
-        teamId: z.number(),
-        date: z.date(),
-        shift: z.enum(["manha", "tarde", "noite"]),
-        sector: z.string().optional(),
-      }))
-      .mutation(async ({ input }) => {
-        return db.createSchedule({
-          ...input,
-          date: new Date(input.date),
-        });
-      }),
-
-    update: protectedProcedure
-      .input(z.object({
-        id: z.number(),
-        teamId: z.number().optional(),
-        date: z.date().optional(),
-        shift: z.enum(["manha", "tarde", "noite"]).optional(),
-        sector: z.string().optional(),
-        status: z.enum(["confirmada", "pendente", "cancelada"]).optional(),
-      }))
-      .mutation(async ({ input }) => {
-        const { id, ...data } = input;
-        return db.updateSchedule(id, data);
-      }),
-
-    delete: protectedProcedure
-      .input(z.number())
-      .mutation(async ({ input }) => {
-        return db.deleteSchedule(input);
-      }),
-  }),
-
   // ============ SALAS ============
   rooms: router({
     list: protectedProcedure

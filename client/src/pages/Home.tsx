@@ -67,13 +67,7 @@ export default function Home() {
       path: "/inventory",
       color: "bg-orange-900/20 hover:bg-orange-900/30 border-orange-700/30",
     },
-    {
-      icon: Calendar,
-      label: t("home.schedule"),
-      description: t("home.schedule.desc"),
-      path: "/schedule",
-      color: "bg-orange-900/20 hover:bg-orange-900/30 border-orange-700/30",
-    },
+
     {
       icon: Building2,
       label: t("home.rooms"),

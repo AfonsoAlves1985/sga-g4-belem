@@ -15,7 +15,7 @@ const translations: Translations = {
     "nav.dashboard": "Dashboard",
     "nav.home": "Início",
     "nav.inventory": "Inventário",
-    "nav.schedule": "Escala",
+
     "nav.rooms": "Salas",
     "nav.maintenance": "Manutenção",
     "nav.suppliers": "Fornecedores",
@@ -23,8 +23,7 @@ const translations: Translations = {
     "home.subtitle": "Centralize operações e melhore a eficiência da sua equipa",
     "home.inventory": "Inventário",
     "home.inventory.desc": "Controlo de entrada/saída e alertas de stock",
-    "home.schedule": "Escala",
-    "home.schedule.desc": "Atribuição automática por sector e turno",
+
     "home.rooms": "Salas",
     "home.rooms.desc": "Calendário visual com status em tempo real",
     "home.maintenance": "Manutenção",
@@ -70,9 +69,7 @@ const translations: Translations = {
     "inventory.success_deleted": "Item eliminado com sucesso!",
     "inventory.error": "Erro",
     "inventory.confirm_delete": "Tem certeza que deseja eliminar este item?",
-    "schedule.title": "Escala",
-    "schedule.subtitle": "Gestão de turnos e atribuição de pessoal",
-    "schedule.new": "Nova Escala",
+
     "rooms.title": "Salas",
     "rooms.subtitle": "Gestão de reservas e calendário visual",
     "rooms.new": "Nova Sala",
@@ -92,7 +89,7 @@ const translations: Translations = {
     "nav.dashboard": "Dashboard",
     "nav.home": "Início",
     "nav.inventory": "Inventário",
-    "nav.schedule": "Escala",
+
     "nav.rooms": "Salas",
     "nav.maintenance": "Manutenção",
     "nav.suppliers": "Fornecedores",
@@ -100,8 +97,7 @@ const translations: Translations = {
     "home.subtitle": "Centralize operações e melhore a eficiência da sua equipe",
     "home.inventory": "Inventário",
     "home.inventory.desc": "Controle de entrada/saída e alertas de estoque",
-    "home.schedule": "Escala",
-    "home.schedule.desc": "Atribuição automática por setor e turno",
+
     "home.rooms": "Salas",
     "home.rooms.desc": "Calendário visual com status em tempo real",
     "home.maintenance": "Manutenção",
@@ -147,9 +143,7 @@ const translations: Translations = {
     "inventory.success_deleted": "Item eliminado com sucesso!",
     "inventory.error": "Erro",
     "inventory.confirm_delete": "Tem certeza que deseja eliminar este item?",
-    "schedule.title": "Escala",
-    "schedule.subtitle": "Gestão de turnos e atribuição de pessoal",
-    "schedule.new": "Nova Escala",
+
     "rooms.title": "Salas",
     "rooms.subtitle": "Gestão de reservas e calendário visual",
     "rooms.new": "Nova Sala",
@@ -169,7 +163,7 @@ const translations: Translations = {
     "nav.dashboard": "Dashboard",
     "nav.home": "Home",
     "nav.inventory": "Inventory",
-    "nav.schedule": "Schedule",
+
     "nav.rooms": "Rooms",
     "nav.maintenance": "Maintenance",
     "nav.suppliers": "Suppliers",
@@ -177,8 +171,7 @@ const translations: Translations = {
     "home.subtitle": "Centralize operations and improve your team's efficiency",
     "home.inventory": "Inventory",
     "home.inventory.desc": "Inbound/outbound control and stock alerts",
-    "home.schedule": "Schedule",
-    "home.schedule.desc": "Automatic assignment by sector and shift",
+
     "home.rooms": "Rooms",
     "home.rooms.desc": "Visual calendar with real-time status",
     "home.maintenance": "Maintenance",
@@ -224,9 +217,7 @@ const translations: Translations = {
     "inventory.success_deleted": "Item deleted successfully!",
     "inventory.error": "Error",
     "inventory.confirm_delete": "Are you sure you want to delete this item?",
-    "schedule.title": "Schedule",
-    "schedule.subtitle": "Shift management and staff assignment",
-    "schedule.new": "New Schedule",
+
     "rooms.title": "Rooms",
     "rooms.subtitle": "Reservation management and visual calendar",
     "rooms.new": "New Room",
@@ -246,7 +237,7 @@ const translations: Translations = {
     "nav.dashboard": "Panel",
     "nav.home": "Inicio",
     "nav.inventory": "Inventario",
-    "nav.schedule": "Horario",
+
     "nav.rooms": "Salas",
     "nav.maintenance": "Mantenimiento",
     "nav.suppliers": "Proveedores",
@@ -254,8 +245,7 @@ const translations: Translations = {
     "home.subtitle": "Centralice operaciones y mejore la eficiencia de su equipo",
     "home.inventory": "Inventario",
     "home.inventory.desc": "Control de entrada/salida y alertas de stock",
-    "home.schedule": "Horario",
-    "home.schedule.desc": "Asignación automática por sector y turno",
+
     "home.rooms": "Salas",
     "home.rooms.desc": "Calendario visual con estado en tiempo real",
     "home.maintenance": "Mantenimiento",
@@ -301,9 +291,7 @@ const translations: Translations = {
     "inventory.success_deleted": "¡Artículo eliminado exitosamente!",
     "inventory.error": "Error",
     "inventory.confirm_delete": "¿Está seguro de que desea eliminar este artículo?",
-    "schedule.title": "Horario",
-    "schedule.subtitle": "Gestión de turnos y asignación de personal",
-    "schedule.new": "Nuevo Horario",
+
     "rooms.title": "Salas",
     "rooms.subtitle": "Gestión de reservas y calendario visual",
     "rooms.new": "Nueva Sala",

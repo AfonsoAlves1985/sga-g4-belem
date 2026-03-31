@@ -8,7 +8,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import Home from "./pages/Home";
 import Inventory from "./pages/Inventory";
 import InventoryHistory from "./pages/InventoryHistory";
-import Schedule from "./pages/Schedule";
+
 import Rooms from "./pages/Rooms";
 import Maintenance from "./pages/Maintenance";
 import SuppliersAndPurchases from "./pages/SuppliersAndPurchases";
@@ -61,7 +61,7 @@ function Router() {
         <Route path={"/"} component={Home} />
         <Route path={"/inventory"} component={Inventory} />
         <Route path={"/inventory-history"} component={InventoryHistory} />
-        <Route path={"/schedule"} component={Schedule} />
+
         <Route path={"/rooms"} component={Rooms} />
         <Route path={"/maintenance"} component={Maintenance} />
         <Route path={"/suppliers"} component={SuppliersAndPurchases} />

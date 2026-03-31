@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users,
   inventory, inventoryMovements, InsertInventory, InsertInventoryMovement,
-  teams, schedules, InsertTeam, InsertSchedule,
+  teams, InsertTeam,
   rooms, roomReservations, InsertRoom, InsertRoomReservation,
   maintenanceRequests, InsertMaintenanceRequest,
   maintenanceSpaces,
@@ -213,50 +213,6 @@ export async function deleteTeam(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.delete(teams).where(eq(teams.id, id));
-}
-
-// ============ ESCALA ============
-
-export async function listSchedules(filters?: { teamId?: number; date?: Date }) {
-  const db = await getDb();
-  if (!db) return [];
-
-  const conditions = [];
-
-  if (filters?.teamId) conditions.push(eq(schedules.teamId, filters.teamId));
-  if (filters?.date) {
-    const startOfDay = new Date(filters.date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(filters.date);
-    endOfDay.setHours(23, 59, 59, 999);
-    conditions.push(and(gte(schedules.date, startOfDay), lte(schedules.date, endOfDay)));
-  }
-
-  let query = db.select().from(schedules);
-  if (conditions.length > 0) {
-    // @ts-ignore - Drizzle ORM type inference issue
-    query = query.where(and(...conditions));
-  }
-
-  return (await query.orderBy(asc(schedules.date))) as any;
-}
-
-export async function createSchedule(data: InsertSchedule) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return db.insert(schedules).values(data);
-}
-
-export async function updateSchedule(id: number, data: Partial<InsertSchedule>) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return db.update(schedules).set(data).where(eq(schedules.id, id));
-}
-
-export async function deleteSchedule(id: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  return db.delete(schedules).where(eq(schedules.id, id));
 }
 
 // ============ SALAS ============
