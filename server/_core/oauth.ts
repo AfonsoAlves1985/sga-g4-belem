@@ -50,7 +50,8 @@ export function registerOAuthRoutes(app: Express) {
       // Decodificar state para obter a URL de retorno
       let redirectUrl = "/";
       try {
-        redirectUrl = Buffer.from(state, 'base64').toString('utf-8');
+        const stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+        redirectUrl = stateData.origin + (stateData.returnPath || '/');
       } catch (e) {
         console.warn('[OAuth] Failed to decode state, redirecting to home');
       }
