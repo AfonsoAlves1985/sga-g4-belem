@@ -11,8 +11,10 @@ function getQueryParam(req: Request, key: string): string | undefined {
 
 export function registerOAuthRoutes(app: Express) {
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
+    console.log('[OAuth] Callback route hit!');
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
+    console.log('[OAuth] Code:', code?.substring(0, 10), 'State:', state?.substring(0, 20));
 
     if (!code || !state) {
       res.status(400).json({ error: "code and state are required" });
