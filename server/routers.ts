@@ -198,6 +198,7 @@ export const appRouter = router({
         location: z.string().optional(),
         type: z.enum(["sala", "auditorio", "cozinha", "outro"]).optional(),
         status: z.enum(["disponivel", "ocupada", "manutencao"]).optional(),
+        responsibleUserName: z.string().optional(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
         startTime: z.string().optional(),
